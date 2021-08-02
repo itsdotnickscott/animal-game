@@ -1,0 +1,2 @@
+[0802/141940.130:WARNING:dns_config_service_win.cc(668)] Failed to read DnsConfig.
+[0802/151959.128:ERROR:media_internals.cc(112)] Cannot get RenderProcessHost
