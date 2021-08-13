@@ -1,24 +1,38 @@
-extends "res://characters/Character.gd"
+extends Character
+
 
 func load_stats():
 	$Sprite.texture = preload("res://assets/sample_enemy.png")
-	hp = 100
-	atk = 10
-	mag = 10
-	def = 0
-	wil = 0
-	spd = 0.5
-	ult = 0
-	is_player = false
+	max_hp  = 100
+	atk     = 10
+	crit    = 1
+	acc     = 1
+	def     = 0
+	dodge   = 0
+	spd     = 0
+
+	curr_hp = max_hp
+	egy = 0
+	status = []
+
+	$HPLabel.text = max_hp as String + "HP"
 
 
-func start_battle():
-	.start_battle()
+func attack():
+	# Attack one target for 100% ATK
+	return {
+		"dmg": atk,
+		"targ": "XXXX",
+	}
 
 
-func take_damage(num):
-	.take_damage(num)
+func primary():
+	pass
 
 
-func update_labels():
-	.update_labels()
+func secondary():
+	pass
+
+	
+func ultimate():
+	pass

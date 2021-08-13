@@ -1,51 +1,45 @@
-extends Area2D
-
 class_name Character
 
-signal attack(unit)
+extends Area2D
 
-var hp   # hit points
-var atk  # dmg per attack
-var mag  # spell damage
-var def  # physical resistance
-var wil  # magical resistance
-var spd  # cd for attack
-var ult  # ultimate cooldown
-var is_player
+
+signal selected(node)
+
+
+var max_hp  # hit points
+var atk     # boosts damage from attacks
+var mag		# boosts scaling for spells
+var crit    # chance to deal extra dmg
+var acc     # chance to land an attack
+var def     # resist dmg from attacks
+var dodge   # avoid attack
+var spd     # determines initiative in battle
+
+var curr_hp # current health
+var egy     # energy for ult
+var status  # current buffs/debuffs
 
 
 func init(name):
-	set_script(load("res://characters/" + name +".gd"))
-
+	set_script(load("res://characters/" + name + ".gd"))
 	load_stats()
-
-	if is_player:
-		add_to_group("player")
-	else:
-		add_to_group("enemy")
-
-
-func start_battle():
-	$AttackTimer.wait_time = spd
-	$AttackTimer.start()
-	update_labels()
-
-
-func _on_AttackTimer_timeout():
-	emit_signal("attack", self)
-
-
-func take_damage(num):
-	hp = clamp(hp - num, 0, hp)
-	update_labels()
-
-	if hp == 0:
-		queue_free()
-
-
-func update_labels():
-	$HPLabel.text = hp as String + "HP"
 
 
 func load_stats():
-	return
+	pass
+
+
+func _on_Character_input_event(_viewport, event, _shape_idx):
+	if event is InputEventMouseButton:
+		if event.button_index == BUTTON_LEFT and event.pressed:
+			emit_signal("selected", self)
+
+
+func take_damage(val):
+	curr_hp -= val
+
+	update_labels()
+
+
+func update_labels():
+	$HPLabel.text = curr_hp as String + "HP"

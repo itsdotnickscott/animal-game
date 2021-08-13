@@ -1,41 +1,32 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=5 format=2]
 
-[ext_resource path="res://assets/sample_character.png" type="Texture" id=1]
-[ext_resource path="res://characters/Character.gd" type="Script" id=2]
-[ext_resource path="res://assets/fonts/m3x6.ttf" type="DynamicFontData" id=3]
+[ext_resource path="res://assets/fonts/m3x6.tres" type="DynamicFont" id=1]
+[ext_resource path="res://assets/sample_character.png" type="Texture" id=2]
+[ext_resource path="res://characters/Character.gd" type="Script" id=3]
 
 [sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 11, 14 )
-
-[sub_resource type="DynamicFont" id=2]
-font_data = ExtResource( 3 )
+extents = Vector2( 19, 32 )
 
 [node name="Character" type="Area2D"]
-script = ExtResource( 2 )
-__meta__ = {
-"_edit_group_": true
-}
+script = ExtResource( 3 )
 
 [node name="Sprite" type="Sprite" parent="."]
-position = Vector2( 16, 25 )
-texture = ExtResource( 1 )
+position = Vector2( -0.0882874, 0.176579 )
+texture = ExtResource( 2 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-visible = false
-position = Vector2( 0, 2 )
 shape = SubResource( 1 )
 
-[node name="AttackTimer" type="Timer" parent="."]
-
 [node name="HPLabel" type="Label" parent="."]
-margin_left = -20.0
-margin_right = 52.0
-margin_bottom = 26.0
-custom_fonts/font = SubResource( 2 )
+margin_left = -20.3581
+margin_top = -46.355
+margin_right = 19.6419
+margin_bottom = -32.355
+custom_fonts/font = ExtResource( 1 )
 text = "9999HP"
 align = 1
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[connection signal="timeout" from="AttackTimer" to="." method="_on_AttackTimer_timeout"]
+[connection signal="input_event" from="." to="." method="_on_Character_input_event"]
