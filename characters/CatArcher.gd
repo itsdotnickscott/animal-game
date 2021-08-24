@@ -6,6 +6,8 @@ var on_fire
 
 
 func load_stats():
+	name = "CatArcher"
+	
 	$Sprite.texture = preload("res://assets/fire_cat_64.png")
 	max_hp  = 450
 	atk     = 60
@@ -32,6 +34,7 @@ func attack():
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.1,
 		"targ": "XXXX",
+		"debuff": apply_burn(),
 	}
 
 
@@ -44,7 +47,8 @@ func primary():
 		"type": MoveType.AOE,
 		"val": atk * 0.75,
 		"targ": "XXXX",
-		"dmg_loss": 0.5
+		"dmg_loss": 0.5,
+		"debuff": apply_burn(),
 	}
 
 
@@ -53,7 +57,7 @@ func secondary():
 	# While on fire, abilities apply a BURN.
 	egy += 10
 
-	status.append({
+	apply_status({
 		"type": StatusType.BUFF, 
 		"dodge": 5,
 		"on_fire": true,
@@ -71,13 +75,16 @@ func ultimate():
 		"type": MoveType.AOE,
 		"val": atk * 1.5,
 		"check": StatusEffect.BURN,
-		"targ": "XXXX"
+		"targ": "XXXX",
+		"debuff": apply_burn(),
 	}
 
 
 func apply_burn():
-	# Deals 15% MAG over 3 turns.
+	if !on_fire:
+		return null
 
+	# Deals 15% MAG over 3 turns.
 	return {
 		"type": StatusType.DEBUFF,
 		"effect": StatusEffect.BURN,
@@ -92,3 +99,21 @@ func update_labels():
 
 func take_damage(val):
 	.take_damage(val)
+
+
+func start_turn():
+	.start_turn()
+
+
+func apply_status(effect):
+	if effect.on_fire:
+		on_fire = effect.on_fire
+
+	.apply_status(effect)
+
+
+func clear_status(effect):
+	if effect.on_fire:
+		on_fire = !effect.on_fire
+
+	.clear_status(effect)

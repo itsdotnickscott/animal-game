@@ -8,7 +8,7 @@ signal selected(node)
 
 var max_hp  # hit points
 var atk     # boosts damage from attacks
-var mag		# boosts scaling for spells
+var mag     # boosts scaling for spells
 var crit    # chance to deal extra dmg
 var acc     # chance to land an attack
 var def     # resist dmg from attacks
@@ -42,4 +42,33 @@ func take_damage(val):
 
 
 func update_labels():
-	$HPLabel.text = curr_hp as String + "HP"
+	var hp = curr_hp as int
+	$HPLabel.text = hp as String + "HP"
+
+
+func start_turn():
+	for effect in status:
+		effect.turns -= 1
+
+		print("turns left ", effect.turns)
+
+		if effect.turns == 0:
+			clear_status(effect)
+
+
+func apply_status(effect):
+	status.append(effect)
+
+	if effect.dodge:
+		dodge += effect.dodge
+
+	print(status)
+
+
+func clear_status(effect):
+	status.erase(effect)
+
+	if effect.dodge:
+		dodge -= effect.dodge
+
+		print("cleared effect")

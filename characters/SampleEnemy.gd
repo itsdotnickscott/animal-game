@@ -15,24 +15,60 @@ func load_stats():
 	egy = 0
 	status = []
 
-	$HPLabel.text = max_hp as String + "HP"
+	update_labels()
 
 
 func attack():
 	# Attack one target for 100% ATK
 	return {
-		"dmg": atk,
+		"type": MoveType.DAMAGE,
+		"val": atk * 1.0,
 		"targ": "XXXX",
 	}
 
 
 func primary():
-	pass
+	# Attack one target for 100% ATK
+	return {
+		"type": MoveType.DAMAGE,
+		"val": atk * 1.0,
+		"targ": "XXXX",
+	}
 
 
 func secondary():
-	pass
+	# Attack one target for 100% ATK
+	return {
+		"type": MoveType.DAMAGE,
+		"val": atk * 1.0,
+		"targ": "XXXX",
+	}
 
 	
 func ultimate():
-	pass
+	# Attack one target for 100% ATK
+	return {
+		"type": MoveType.DAMAGE,
+		"val": atk * 1.0,
+		"targ": "XXXX",
+	}
+
+
+func update_labels():
+	.update_labels()
+
+
+func take_damage(val):
+	.take_damage(val)
+
+
+func start_turn():
+	.start_turn()
+
+
+func apply_status(effect):
+	.apply_status(effect)
+
+
+func clear_status(effect):
+	.clear_status(effect)

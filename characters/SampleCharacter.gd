@@ -60,3 +60,15 @@ func update_labels():
 
 func take_damage(val):
 	.take_damage(val)
+
+
+func start_turn():
+	.start_turn()
+
+
+func apply_status(effect):
+	.apply_status(effect)
+
+
+func clear_status(effect):
+	.clear_status(effect)
