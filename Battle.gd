@@ -113,10 +113,13 @@ func execute_damage(move):
 		pass
 	
 	target.take_damage(move.val)
+
+	# used for battle log
 	print(getRoundTurnString(), initiative[t_num].hero.name + " dealt " + move.val as String + " damage to " + target.name)
 
 	if "debuff" in move:
-		target.apply_status(move.debuff)
+		if move.debuff != null:
+			target.apply_status(move.debuff)
 
 
 func execute_aoe(move):
@@ -146,4 +149,5 @@ func _on_Character_selected(node):
 
 
 func getRoundTurnString():
-	return "[r" + r_num + 1 as String + "t" + t_num + 1 as String + "] "
+	# used for battle log
+	return "[r" + (r_num + 1) as String + "t" + (t_num + 1) as String + "] "

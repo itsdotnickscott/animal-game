@@ -10,8 +10,8 @@ func load_stats():
 	
 	$Sprite.texture = preload("res://assets/fire_cat_64.png")
 	max_hp  = 450
-	atk     = 60
-	mag 	= 10
+	atk     = 10
+	mag 	= 4
 	crit    = 0
 	acc     = 0.9
 	def     = 0
@@ -88,7 +88,7 @@ func apply_burn():
 	return {
 		"type": StatusType.DEBUFF,
 		"effect": StatusEffect.BURN,
-		"val": mag * 0.05,
+		"val": mag * 0.25,
 		"turns": 3,
 	}
 
@@ -108,6 +108,7 @@ func start_turn():
 func apply_status(effect):
 	if effect.on_fire:
 		on_fire = effect.on_fire
+		print("[status]", " CatArcher is on fire")
 
 	.apply_status(effect)
 
