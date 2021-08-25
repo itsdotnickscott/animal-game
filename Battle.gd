@@ -3,6 +3,8 @@ extends Node2D
 class_name Battle
 
 
+var rng = RandomNumberGenerator.new()
+
 enum GameState {CHOOSE_ABILITY, CHOOSE_TARGET}
 
 var player_team
@@ -12,10 +14,9 @@ var game_state
 var target
 var ability
 var initiative
-var curr_turn
 
-
-var rng = RandomNumberGenerator.new()
+var r_num	# round number
+var t_num	# turn number
 
 
 func _ready():
@@ -34,12 +35,14 @@ func _ready():
 	player_team = get_tree().get_nodes_in_group("player")
 	enemy_team = get_tree().get_nodes_in_group("enemy")
 
+	r_num = -1
 	rng.randomize()
 
 	round_start()
 
 
 func round_start():
+	r_num += 1
 	roll_initiative()
 	next_turn()
 
@@ -47,14 +50,14 @@ func round_start():
 func roll_initiative():
 	initiative = []
 
-	# roll initiatives for each hero
+	# Roll initiatives for each hero
 	for hero in player_team:
 		initiative.append({"hero": hero, "roll": hero.spd + rng.randf_range(0, 8)})
 
 	for hero in enemy_team:
 		initiative.append({"hero": hero, "roll": hero.spd + rng.randf_range(0, 8)})
 
-	# sort heroes in initiative order based off of roll
+	# Sort heroes in initiative order based off of roll
 	for _i in range(0, (initiative.size() - 1)):
 		for j in range(0, (initiative.size() - 1)):
 			if(initiative[j].roll < initiative[j + 1].roll):
@@ -62,11 +65,26 @@ func roll_initiative():
 				initiative[j] = initiative[j + 1]
 				initiative[j + 1] = temp
 
-	curr_turn = -1
+	t_num = -1
+
+
+func next_turn():
+	if t_num == initiative.size() - 1:
+		round_start()
+		return
+
+	t_num += 1
+	target = null
+	ability = null
+
+	set_info(initiative[t_num].hero.name + "'s Turn")
+	initiative[t_num].hero.start_turn()
+
+	game_state = GameState.CHOOSE_ABILITY
 
 
 func execute_move():
-	var hero = initiative[curr_turn].hero
+	var hero = initiative[t_num].hero
 	var move
 
 	match ability:
@@ -95,8 +113,10 @@ func execute_damage(move):
 		pass
 	
 	target.take_damage(move.val)
+	print(getRoundTurnString(), initiative[t_num].hero.name + " dealt " + move.val as String + " damage to " + target.name)
 
-	print("[BATTLE LOG] ", initiative[curr_turn].hero.name + " dealt " + move.val as String + " damage to " + target.name)
+	if "debuff" in move:
+		target.apply_status(move.debuff)
 
 
 func execute_aoe(move):
@@ -105,21 +125,6 @@ func execute_aoe(move):
 		execute_damage(move)
 
 		move.val = move.val * move.dmg_loss
-
-
-func next_turn():
-	if curr_turn == initiative.size() - 1:
-		round_start()
-		return
-
-	curr_turn += 1
-	target = null
-	ability = null
-
-	set_info(initiative[curr_turn].hero.name + "'s Turn")
-	initiative[curr_turn].hero.start_turn()
-
-	game_state = GameState.CHOOSE_ABILITY
 
 
 func set_info(msg):
@@ -138,3 +143,7 @@ func _on_Character_selected(node):
 
 	if game_state == GameState.CHOOSE_TARGET:
 		execute_move()
+
+
+func getRoundTurnString():
+	return "[r" + r_num + 1 as String + "t" + t_num + 1 as String + "] "

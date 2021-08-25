@@ -50,19 +50,29 @@ func start_turn():
 	for effect in status:
 		effect.turns -= 1
 
-		print("turns left ", effect.turns)
-
 		if effect.turns == 0:
 			clear_status(effect)
+
+		if "effect" in effect:
+			if effect.effect == StatusEffect.BURN:
+				curr_hp = effect.val
+
+				# used for battle log
+				print("[status] ", name + " was burned for " + effect.val as String + " damage")
 
 
 func apply_status(effect):
 	status.append(effect)
 
-	if effect.dodge:
+	if "dodge" in effect:
 		dodge += effect.dodge
 
-	print(status)
+	if "effect" in effect:
+		if effect.effect == StatusEffect.BURN:
+			curr_hp = effect.val
+
+			# used for battle log
+			print("[status] ", name + " is burned for " + effect.turns as String + " turns")
 
 
 func clear_status(effect):
