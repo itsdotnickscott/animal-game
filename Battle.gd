@@ -23,8 +23,8 @@ func _ready():
 	# Group: "player"
 	$Character1.init("SampleCharacter")
 	$Character2.init("SampleCharacter")
-	$Character3.init("SampleCharacter")
-	$Character4.init("CatArcher")
+	$Character3.init("CowDog")
+	$Character4.init("FireCat")
 
 	# Group: "enemy"
 	$Enemy1.init("SampleEnemy")
@@ -69,6 +69,7 @@ func roll_initiative():
 
 
 func next_turn():
+	# Start a new round if all heroes have taken a turn
 	if t_num == initiative.size() - 1:
 		round_start()
 		return
@@ -111,23 +112,69 @@ func execute_move():
 func execute_damage(move):
 	if target == null:
 		pass
-	
-	target.take_damage(move.val)
 
-	# used for battle log
-	print(getRoundTurnString(), initiative[t_num].hero.name + " dealt " + move.val as String + " damage to " + target.name)
+	if ability_success(move):
+		target.take_damage(move.val)
 
-	if "debuff" in move:
-		if move.debuff != null:
-			target.apply_status(move.debuff)
+		# used for battle log
+		print(getRoundTurnString(), initiative[t_num].hero.name + " dealt " + move.val as String + " damage to " + target.name)
+
+		# If target loses all HP
+		if target.curr_hp <= 0:
+			kill_hero(target)
+
+			# used for battle log
+			print(getRoundTurnString(), target.name + " died")
+
+		if "debuff" in move:
+			if move.debuff != null:
+				target.apply_status(move.debuff)
 
 
 func execute_aoe(move):
 	for hero in enemy_team:
 		target = hero
+
 		execute_damage(move)
 
-		move.val = move.val * move.dmg_loss
+		if "dmg_loss" in move:
+			move.val = move.val * move.dmg_loss
+
+
+func ability_success(move):
+	if "check" in move:
+		var hit = false
+
+		# Check if ability requires a check on status effects to hit
+		for effect in target.status:
+			if effect.status == move.check:
+				hit = true
+
+		if !hit:
+			return false
+
+	# Roll for accuracy
+	var roll = rng.randf()
+	if roll > initiative[t_num].hero.acc:
+		# used for battle log
+		print(getRoundTurnString(), initiative[t_num].hero.name + " missed")
+
+		return false
+
+	return true
+
+
+func kill_hero(hero):
+	for roll in initiative:
+		if roll.hero == hero:
+			initiative.erase(roll)
+
+	if player_team.has(hero):
+		player_team.erase(hero)
+	else:
+		enemy_team.erase(hero)
+
+	hero.queue_free()
 
 
 func set_info(msg):

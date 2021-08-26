@@ -3,10 +3,10 @@ extends Character
 
 func load_stats():
 	$Sprite.texture = preload("res://assets/sample_enemy.png")
-	max_hp  = 100
-	atk     = 10
-	crit    = 1
-	acc     = 1
+	max_hp  = 10
+	atk     = 1
+	crit    = 0
+	acc     = 0.9
 	def     = 0
 	dodge   = 0
 	spd     = 0

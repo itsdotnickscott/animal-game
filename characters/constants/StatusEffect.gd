@@ -2,5 +2,6 @@ class_name StatusEffect
 
 
 enum {
-	BURN
+	BURN,
+	STUN,
 }
