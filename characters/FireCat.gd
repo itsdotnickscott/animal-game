@@ -19,7 +19,6 @@ func load_stats():
 	spd     = 5
 
 	curr_hp = max_hp
-	egy = 0
 	status = []
 	on_fire = false
 
@@ -27,45 +26,33 @@ func load_stats():
 
 
 func attack():
-	# Shoot an arrow at one target for 110% ATK.
-	egy += 10
-
+	# Shoot an arrow at one target for 100% ATK.
 	return {
 		"type": MoveType.DAMAGE,
-		"val": atk * 1.1,
-		"targ": "XXXX",
-		"debuff": apply_burn(),
+		"val": atk * 1.0,
+		"targ": "xxxx",
+		"apply": apply_burn(),
 	}
 
 
 func primary():
 	# Shoot a piercing arrow, dealing 50% ATK to the first enemy and losing 50% DMG
 	# for every other enemy.
-	egy += 10
-
 	return {
 		"type": MoveType.AOE,
 		"val": atk * 0.5,
-		"targ": "XXXX",
+		"targ": "xxxx",
 		"dmg_loss": 0.5,
-		"debuff": apply_burn(),
+		"apply": apply_burn(),
 	}
 
 
 func secondary():
-	# Raise DODGE by 5 and set abilities on fire for 2 turns.
 	# While on fire, abilities apply a BURN.
-	egy += 10
-
-	apply_status({
-		"type": StatusType.BUFF, 
-		"dodge": 5,
-		"on_fire": true,
-		"turns": 2,
-	})
-
 	return {
 		"type": MoveType.STATUS,
+		"targ": "self",
+		"apply": apply_on_fire(),
 	}
 
 	
@@ -75,8 +62,17 @@ func ultimate():
 		"type": MoveType.AOE,
 		"val": atk * 1.5,
 		"check": StatusEffect.BURN,
-		"targ": "XXXX",
-		"debuff": apply_burn(),
+		"targ": "xxxx",
+		"apply": apply_burn(),
+	}
+
+
+func apply_on_fire():
+	# Raise DODGE by 5 and set abilities on fire for 2 turns.
+	return {
+		"dodge": 5,
+		"on_fire": true,
+		"turns": 2,
 	}
 
 
@@ -86,7 +82,6 @@ func apply_burn():
 
 	# Deals 75% MAG over 3 turns.
 	return {
-		"type": StatusType.DEBUFF,
 		"status": StatusEffect.BURN,
 		"val": mag * 0.25,
 		"turns": 3,
@@ -99,10 +94,6 @@ func update_labels():
 
 func take_damage(val):
 	.take_damage(val)
-
-
-func start_turn():
-	.start_turn()
 
 
 func apply_status(effect):

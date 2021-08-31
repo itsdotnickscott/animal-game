@@ -37,7 +37,6 @@ func _ready():
 
 	r_num = -1
 	rng.randomize()
-
 	round_start()
 
 
@@ -58,8 +57,8 @@ func roll_initiative():
 		initiative.append({"hero": hero, "roll": hero.spd + rng.randf_range(0, 8)})
 
 	# Sort heroes in initiative order based off of roll
-	for _i in range(0, (initiative.size() - 1)):
-		for j in range(0, (initiative.size() - 1)):
+	for _i in range(initiative.size() - 1):
+		for j in range(initiative.size() - 1):
 			if(initiative[j].roll < initiative[j + 1].roll):
 				var temp = initiative[j]
 				initiative[j] = initiative[j + 1]
@@ -78,8 +77,39 @@ func next_turn():
 	target = null
 	ability = null
 
-	set_info(initiative[t_num].hero.name + "'s Turn")
-	initiative[t_num].hero.start_turn()
+	start_turn()
+
+
+func start_turn():
+	var hero = initiative[t_num].hero
+	set_info(hero.name + "'s Turn")
+
+	# Resolve any status effects
+	for effect in hero.status:
+		effect.turns -= 1
+
+		if effect.turns == 0:
+			hero.clear_status(effect)
+
+		if "status" in effect:
+			match effect.status:
+				StatusEffect.BURN:
+					hero.curr_hp -= effect.val
+					print("[status] ", name + " was burned for " + effect.val as String + " damage")
+
+				StatusEffect.STUN:
+					print("[status] ", name + " is stunned")
+					next_turn()
+					return
+
+	# If enemy's turn, attack random target
+	if hero in enemy_team:
+		var targ = rng.randf_range(0, player_team.size()) as int
+		target = player_team[targ]
+
+		execute_damage(hero.attack())
+		next_turn()
+		return
 
 	game_state = GameState.CHOOSE_ABILITY
 
@@ -91,54 +121,95 @@ func execute_move():
 	match ability:
 		AbilityType.ATK:
 			move = hero.attack()
+			
 		AbilityType.PRI:
 			move = hero.primary()
+
 		AbilityType.SEC:
 			move = hero.secondary()
+
 		AbilityType.ULT:
 			move = hero.ultimate()
+
+	if !valid_target(move):
+		return
 
 	match move.type:
 		MoveType.DAMAGE:
 			execute_damage(move)
+
 		MoveType.AOE:
 			execute_aoe(move)
+
 		MoveType.STATUS:
+			target.apply_status(move.apply)
+
+		_:
 			pass
 
 	next_turn()
 
 
-func execute_damage(move):
+func execute_damage(move, queue = false):
 	if target == null:
 		pass
 
 	if ability_success(move):
 		target.take_damage(move.val)
-
-		# used for battle log
 		print(getRoundTurnString(), initiative[t_num].hero.name + " dealt " + move.val as String + " damage to " + target.name)
+
+		# Handles repeating attacks
+		if "repeat" in move:
+			for _i in range(move.repeat): 
+				if move.targ == "????":
+					var targ = rng.randf_range(0, enemy_team.size()) as int
+					target = enemy_team[targ]
+
+					target.take_damage(move.val)
+					print(getRoundTurnString(), initiative[t_num].hero.name + " dealt " + move.val as String + " damage to " + target.name)
+
+					# If target loses all HP
+					if target.curr_hp <= 0:
+							kill_hero(target)
 
 		# If target loses all HP
 		if target.curr_hp <= 0:
-			kill_hero(target)
+			# If queue is activated, place target in kill queue, otherwise immediately kill
+			if queue:
+				return true
+			else:
+				kill_hero(target)
 
-			# used for battle log
-			print(getRoundTurnString(), target.name + " died")
+		# Apply debuff to target
+		if "apply" in move:
+			if move.apply != null:
+				target.apply_status(move.apply)
 
-		if "debuff" in move:
-			if move.debuff != null:
-				target.apply_status(move.debuff)
+	# If queue is activated, target is not dead so do not place in kill queue
+	if queue:
+		return false
 
 
 func execute_aoe(move):
+	var kill_queue = []
+	var pos = -1
+
 	for hero in enemy_team:
+		pos += 1
+
+		if move.targ[pos] == ".":
+			continue
+
 		target = hero
 
-		execute_damage(move)
+		if execute_damage(move, true):
+			kill_queue.append(target)
 
 		if "dmg_loss" in move:
 			move.val = move.val * move.dmg_loss
+
+	for dead in kill_queue:
+		kill_hero(dead)
 
 
 func ability_success(move):
@@ -156,12 +227,29 @@ func ability_success(move):
 	# Roll for accuracy
 	var roll = rng.randf()
 	if roll > initiative[t_num].hero.acc:
-		# used for battle log
 		print(getRoundTurnString(), initiative[t_num].hero.name + " missed")
-
 		return false
 
 	return true
+
+
+func valid_target(move):
+	if move.targ == "self":
+		if target != initiative[t_num].hero:
+			print("Invalid target")
+			return false
+
+		return true
+
+	var targ_team = player_team if "o" in move.targ else enemy_team
+	var pos = targ_team.find(target)
+
+	if target in targ_team:
+		if move.targ[pos] != ".":
+			return true
+
+	print("Invalid target")
+	return false
 
 
 func kill_hero(hero):
@@ -175,6 +263,7 @@ func kill_hero(hero):
 		enemy_team.erase(hero)
 
 	hero.queue_free()
+	print(getRoundTurnString(), hero.name + " died")
 
 
 func set_info(msg):
@@ -196,5 +285,4 @@ func _on_Character_selected(node):
 
 
 func getRoundTurnString():
-	# used for battle log
 	return "[r" + (r_num + 1) as String + "t" + (t_num + 1) as String + "] "

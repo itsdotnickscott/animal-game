@@ -4,7 +4,7 @@ extends Character
 func load_stats():
 	$Sprite.texture = preload("res://assets/sample_character.png")
 	max_hp  = 10
-	atk     = 1
+	atk     = 5
 	crit    = 0
 	acc     = 0.9
 	def     = 0
@@ -12,7 +12,6 @@ func load_stats():
 	spd     = 0
 
 	curr_hp = max_hp
-	egy = 0
 	status = []
 
 	update_labels()
@@ -60,10 +59,6 @@ func update_labels():
 
 func take_damage(val):
 	.take_damage(val)
-
-
-func start_turn():
-	.start_turn()
 
 
 func apply_status(effect):

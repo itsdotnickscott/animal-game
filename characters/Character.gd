@@ -16,7 +16,6 @@ var dodge   # avoid attack
 var spd     # determines initiative in battle
 
 var curr_hp # current health
-var egy     # energy for ult
 var status  # current buffs/debuffs
 
 
@@ -46,21 +45,6 @@ func update_labels():
 	$HPLabel.text = hp as String + "HP"
 
 
-func start_turn():
-	for effect in status:
-		effect.turns -= 1
-
-		if effect.turns == 0:
-			clear_status(effect)
-
-		if "status" in effect:
-			if effect.status == StatusEffect.BURN:
-				curr_hp -= effect.val
-
-				# used for battle log
-				print("[status] ", name + " was burned for " + effect.val as String + " damage")
-
-
 func apply_status(effect):
 	status.append(effect)
 
@@ -68,11 +52,13 @@ func apply_status(effect):
 		dodge += effect.dodge
 
 	if "status" in effect:
-		if effect.status == StatusEffect.BURN:
-			curr_hp = effect.val
+		match effect.status:
+			StatusEffect.BURN:
+				curr_hp = effect.val
+				print("[status] ", name + " is burned")
 
-			# used for battle log
-			print("[status] ", name + " is burned")
+			StatusEffect.STUN:
+				print("[status] ", name + " is stunned")
 
 
 func clear_status(effect):

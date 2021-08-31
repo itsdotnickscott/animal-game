@@ -33,19 +33,13 @@ _global_script_classes=[ {
 "class": "StatusEffect",
 "language": "GDScript",
 "path": "res://characters/constants/StatusEffect.gd"
-}, {
-"base": "Reference",
-"class": "StatusType",
-"language": "GDScript",
-"path": "res://characters/constants/StatusType.gd"
 } ]
 _global_script_class_icons={
 "AbilityType": "",
 "Battle": "",
 "Character": "",
 "MoveType": "",
-"StatusEffect": "",
-"StatusType": ""
+"StatusEffect": ""
 }
 
 [application]
