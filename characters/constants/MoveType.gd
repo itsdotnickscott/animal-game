@@ -2,7 +2,10 @@ class_name MoveType
 
 
 enum {
-	DAMAGE, 
-	STATUS, 
+	DAMAGE,
 	AOE,
+	STATUS,
+	HEAL,
+	AOE_HEAL,
+	SHIELD,
 }

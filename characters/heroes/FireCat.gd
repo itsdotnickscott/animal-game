@@ -7,7 +7,7 @@ var on_fire
 func load_stats():
 	name = "FireCat"
 	
-	$Sprite.texture = preload("res://assets/fire_cat_64.png")
+	$Sprite.texture = preload("res://assets/fire_cat.png")
 	max_hp  = 20
 	atk     = 8
 	mag 	= 4
@@ -15,7 +15,7 @@ func load_stats():
 	acc     = 0.9
 	def     = 0
 	dodge   = 0
-	spd     = 5
+	spd     = 6
 
 	curr_hp = max_hp
 	status = []
@@ -25,11 +25,12 @@ func load_stats():
 
 
 func attack():
-	# Shoot an arrow at one target for 100% ATK.
+	# Shoot an arrow at one target for 110% ATK.
 	return {
 		"type": MoveType.DAMAGE,
-		"val": atk * 1.0,
+		"val": atk * 1.1,
 		"targ": "xxxx",
+		"pos": "oo..",
 		"apply": apply_burn(),
 	}
 
@@ -41,7 +42,8 @@ func primary():
 		"type": MoveType.AOE,
 		"val": atk * 0.5,
 		"targ": "xxxx",
-		"dmg_loss": 0.5,
+		"pos": "oo..",
+		"dmg_chg": 0.5,
 		"apply": apply_burn(),
 	}
 
@@ -52,6 +54,7 @@ func secondary():
 	return {
 		"type": MoveType.STATUS,
 		"targ": "self",
+		"pos": "oooo",
 		"apply": apply_on_fire(),
 	}
 
@@ -63,6 +66,7 @@ func ultimate():
 		"val": atk * 1.5,
 		"check": StatusEffect.BURN,
 		"targ": "xxxx",
+		"pos": "oo..",
 		"apply": apply_burn(),
 	}
 

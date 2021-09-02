@@ -20,7 +20,7 @@ var status  # current buffs/debuffs
 
 
 func init(name):
-	set_script(load("res://characters/" + name + ".gd"))
+	set_script(load("res://characters/heroes/" + name + ".gd"))
 	load_stats()
 
 

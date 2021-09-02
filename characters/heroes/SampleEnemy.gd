@@ -24,6 +24,7 @@ func attack():
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.0,
 		"targ": "xxxx",
+		"pos": "oooo",
 	}
 
 
@@ -33,6 +34,7 @@ func primary():
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.0,
 		"targ": "xxxx",
+		"pos": "oooo",
 	}
 
 
@@ -42,6 +44,7 @@ func secondary():
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.0,
 		"targ": "xxxx",
+		"pos": "oooo",
 	}
 
 	
@@ -51,6 +54,7 @@ func ultimate():
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.0,
 		"targ": "xxxx",
+		"pos": "oooo",
 	}
 
 

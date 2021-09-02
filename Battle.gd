@@ -21,8 +21,8 @@ var t_num	# turn number
 
 func _ready():
 	# Group: "player"
-	$Character1.init("SampleCharacter")
-	$Character2.init("SampleCharacter")
+	$Character1.init("MagicTurt")
+	$Character2.init("PowBun")
 	$Character3.init("CowDog")
 	$Character4.init("FireCat")
 
@@ -34,6 +34,9 @@ func _ready():
 
 	player_team = get_tree().get_nodes_in_group("player")
 	enemy_team = get_tree().get_nodes_in_group("enemy")
+
+	# Done for positioning purposes
+	player_team.invert()
 
 	r_num = -1
 	rng.randomize()
@@ -135,7 +138,7 @@ func execute_move():
 		AbilityType.ULT:
 			move = hero.ultimate()
 
-	if !valid_target(move):
+	if !valid_pos(move) || !valid_target(move):
 		return
 
 	match move.type:
@@ -165,16 +168,21 @@ func execute_damage(move, queue = false):
 		# Handles repeating attacks
 		if "repeat" in move:
 			for _i in range(move.repeat): 
+				# If targeting is random
 				if move.targ == "????":
 					var targ = rng.randf_range(0, enemy_team.size()) as int
 					target = enemy_team[targ]
 
-					target.take_damage(move.val)
-					print(getRoundTurnString(), initiative[t_num].hero.name + " dealt " + move.val as String + " damage to " + target.name)
+				# If successive attacks get stronger/weaker
+				if "dmg_chg" in move:
+					move.val = move.val * move.dmg_chg
 
-					# If target loses all HP
-					if target.curr_hp <= 0:
-							kill_hero(target)
+				target.take_damage(move.val)
+				print(getRoundTurnString(), initiative[t_num].hero.name + " dealt " + move.val as String + " damage to " + target.name)
+
+				# If target loses all HP
+				if target.curr_hp <= 0:
+						kill_hero(target)
 
 		# If target loses all HP
 		if target.curr_hp <= 0:
@@ -209,8 +217,9 @@ func execute_aoe(move):
 		if execute_damage(move, true):
 			kill_queue.append(target)
 
-		if "dmg_loss" in move:
-			move.val = move.val * move.dmg_loss
+		# If successive attacks get stronger/weaker
+		if "dmg_chg" in move:
+			move.val = move.val * move.dmg_chg
 
 	for dead in kill_queue:
 		kill_hero(dead)
@@ -238,9 +247,10 @@ func ability_success(move):
 
 
 func valid_target(move):
+	# Self-targeted ability
 	if move.targ == "self":
 		if target != initiative[t_num].hero:
-			print("Invalid target")
+			print("Must use this ability on self")
 			return false
 
 		return true
@@ -253,6 +263,18 @@ func valid_target(move):
 			return true
 
 	print("Invalid target")
+	return false
+
+
+func valid_pos(move):
+	var hero = initiative[t_num].hero
+	var targ_team = player_team if hero in player_team else enemy_team
+	var idx = targ_team.find(target)
+
+	if move.pos[idx] == "o":
+		return true
+
+	print("Invalid positioning")
 	return false
 
 

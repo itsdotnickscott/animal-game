@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/fire_cat_64.png-f2105bfdd299471f3371c038854fc125.stex"
+path="res://.import/cow_dog.png-da5846ad9386a475df40a46c89ceb46a.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/fire_cat_64.png"
-dest_files=[ "res://.import/fire_cat_64.png-f2105bfdd299471f3371c038854fc125.stex" ]
+source_file="res://assets/cow_dog.png"
+dest_files=[ "res://.import/cow_dog.png-da5846ad9386a475df40a46c89ceb46a.stex" ]
 
 [params]
 

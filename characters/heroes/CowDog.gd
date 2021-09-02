@@ -4,7 +4,7 @@ extends Character
 func load_stats():
 	name = "CowDog"
 	
-	$Sprite.texture = preload("res://assets/cow_dog_64.png")
+	$Sprite.texture = preload("res://assets/cow_dog.png")
 	max_hp  = 16
 	atk     = 9
 	mag 	= 4
@@ -21,31 +21,37 @@ func load_stats():
 
 
 func attack():
-	# Shoot CowDog's gun at one target for 100% ATK.
+	# Shoot CowDog's gun at one target for 120% ATK.
 	return {
 		"type": MoveType.DAMAGE,
-		"val": atk * 1.0,
+		"val": atk * 1.2,
 		"targ": "xxxx",
+		"pos": "ooo.",
 	}
 
 
 func primary():
-	# Throw a stun grenade for 75% MAG.
+	# Roll forward 1 space and throw a stun grenade for 75% MAG.
 	return {
 		"type": MoveType.DAMAGE,
 		"val": mag * 0.75,
 		"targ": "xx..",
+		"pos": "oo..",
+		"move_self": 1,
 		"apply": apply_stun(),
 	}
 
 
 func secondary():
-	# Shoot a blast dealing 80% ATK to the first target and half that damage to the second.
+	# Shoot a blast dealing 80% ATK to the first target and half that damage to the second, pushing
+	# CowDog back 2 spaces.
 	return {
 		"type": MoveType.AOE, 
 		"val": atk * 0.80,
 		"targ": "xx..",
-		"dmg_loss": 0.5,
+		"pos": "..oo",
+		"move_self": -2,
+		"dmg_chg": 0.5,
 	}
 
 	
@@ -55,6 +61,7 @@ func ultimate():
 		"type": MoveType.DAMAGE,
 		"val": atk * 0.5,
 		"targ": "????",
+		"pos": "oo..",
 		"repeat": 5,
 	}
 
