@@ -77,6 +77,10 @@ func next_turn():
 	target = null
 	ability = null
 
+	if initiative[t_num].hero == null:
+		next_turn()
+		return
+
 	start_turn()
 
 
@@ -86,21 +90,21 @@ func start_turn():
 
 	# Resolve any status effects
 	for effect in hero.status:
-		effect.turns -= 1
-
-		if effect.turns == 0:
-			hero.clear_status(effect)
-
 		if "status" in effect:
 			match effect.status:
 				StatusEffect.BURN:
 					hero.curr_hp -= effect.val
-					print("[status] ", name + " was burned for " + effect.val as String + " damage")
+					print("[status] ", hero.name + " was burned for " + effect.val as String + " damage")
 
 				StatusEffect.STUN:
-					print("[status] ", name + " is stunned")
+					print("[status] ", hero.name + " is stunned")
 					next_turn()
 					return
+
+		effect.turns -= 1
+
+		if effect.turns == 0:
+			hero.clear_status(effect)
 
 	# If enemy's turn, attack random target
 	if hero in enemy_team:
@@ -255,7 +259,7 @@ func valid_target(move):
 func kill_hero(hero):
 	for roll in initiative:
 		if roll.hero == hero:
-			initiative.erase(roll)
+			roll.hero = null
 
 	if player_team.has(hero):
 		player_team.erase(hero)

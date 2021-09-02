@@ -1,7 +1,6 @@
 extends Character
 
 
-# Special buff
 var on_fire
 
 
@@ -48,6 +47,7 @@ func primary():
 
 
 func secondary():
+	# Raise DODGE by 5 and set abilities on fire for 2 turns.
 	# While on fire, abilities apply a BURN.
 	return {
 		"type": MoveType.STATUS,
@@ -68,9 +68,8 @@ func ultimate():
 
 
 func apply_on_fire():
-	# Raise DODGE by 5 and set abilities on fire for 2 turns.
 	return {
-		"dodge": 5,
+		"dodge": 0.05,
 		"on_fire": true,
 		"turns": 2,
 	}

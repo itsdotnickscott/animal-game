@@ -5,6 +5,7 @@ func load_stats():
 	$Sprite.texture = preload("res://assets/sample_enemy.png")
 	max_hp  = 10
 	atk     = 5
+	mag		= 0
 	crit    = 0
 	acc     = 0.9
 	def     = 0
@@ -22,7 +23,7 @@ func attack():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.0,
-		"targ": "XXXX",
+		"targ": "xxxx",
 	}
 
 
@@ -31,7 +32,7 @@ func primary():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.0,
-		"targ": "XXXX",
+		"targ": "xxxx",
 	}
 
 
@@ -40,7 +41,7 @@ func secondary():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.0,
-		"targ": "XXXX",
+		"targ": "xxxx",
 	}
 
 	
@@ -49,7 +50,7 @@ func ultimate():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.0,
-		"targ": "XXXX",
+		"targ": "xxxx",
 	}
 
 

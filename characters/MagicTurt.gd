@@ -1,10 +1,15 @@
 extends Character
 
 
+var shell_mode
+var rage
+
+
 func load_stats():
-	$Sprite.texture = preload("res://assets/sample_character.png")
-	max_hp  = 10
-	atk     = 1
+	$Sprite.texture = preload("res://assets/magic_turt_64.png")
+	max_hp  = 30
+	atk     = 6
+	mag 	= 10
 	crit    = 0
 	acc     = 0.9
 	def     = 0
@@ -13,43 +18,61 @@ func load_stats():
 
 	curr_hp = max_hp
 	status = []
+	shell_mode = false
+	rage = 0
 
 	update_labels()
 
 
 func attack():
-	# Attack one target for 100% ATK
+	# Headbutt a target for 100% ATK.
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.0,
-		"targ": "XXXX",
+		"targ": "xx..",
 	}
 
 
 func primary():
-	# Attack one target for 100% ATK
+	# Shoot a fireball at a target for 120% MAG.
 	return {
 		"type": MoveType.DAMAGE,
-		"val": atk * 1.0,
-		"targ": "XXXX",
+		"val": mag * 1.2,
+		"targ": ".xxx",
 	}
 
 
 func secondary():
-	# Attack one target for 100% ATK
+	# Passive: Taking or dealing damage is stored as RAGE equal to 25% DMG. 
+	# Enter into shell mode for 2 turns, increasing MagicTurt's DEF by 10. Gain twice as much RAGE
+	# when taking or dealing damage. MagicTurt cannot cast its ultimate while in shell mode.
 	return {
-		"type": MoveType.DAMAGE,
-		"val": atk * 1.0,
-		"targ": "XXXX",
+		"type": MoveType.STATUS,
+		"targ": "self",
 	}
 
 	
 func ultimate():
-	# Attack one target for 100% ATK
+	# Engulf all targets with a flame for 100% MAG plus all RAGE stored.
+	# This ability does not generate RAGE.
 	return {
-		"type": MoveType.DAMAGE,
-		"val": atk * 1.0,
-		"targ": "XXXX",
+		"type": MoveType.AOE,
+		"val": mag * 1.0 + convert_rage(),
+		"targ": "xxxx",
+	}
+
+
+func convert_rage():
+	var dmg = rage
+	rage = 0
+	return dmg
+
+
+func apply_shell():
+	return {
+		"shell_mode": true,
+		"def": 0.1,
+		"turns": 2,
 	}
 
 
