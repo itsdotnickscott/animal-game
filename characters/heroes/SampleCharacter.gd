@@ -18,8 +18,8 @@ func attack():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.0,
-		"targ": "xxxx",
-		"pos": "oooo",
+		"targ": Positioning.ALLY_ALL,
+		"pos": Positioning.ENEMY_ALL,
 	}
 
 
@@ -28,8 +28,8 @@ func primary():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.0,
-		"targ": "xxxx",
-		"pos": "oooo",
+		"targ": Positioning.ALLY_ALL,
+		"pos": Positioning.ENEMY_ALL,
 	}
 
 
@@ -38,8 +38,8 @@ func secondary():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.0,
-		"targ": "xxxx",
-		"pos": "oooo",
+		"targ": Positioning.ALLY_ALL,
+		"pos": Positioning.ENEMY_ALL,
 	}
 
 	
@@ -48,6 +48,6 @@ func ultimate():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.0,
-		"targ": "xxxx",
-		"pos": "oooo",
+		"targ": Positioning.ALLY_ALL,
+		"pos": Positioning.ENEMY_ALL,
 	}

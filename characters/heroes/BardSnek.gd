@@ -20,8 +20,8 @@ func attack():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.0,
-		"targ": "xxxx",
-		"pos": "oo..",
+		"targ": Positioning.ENEMY_ALL,
+		"pos": Positioning.ALLY_BACK,
 	}
 
 
@@ -30,19 +30,19 @@ func primary():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": mag * 1.5,
-		"targ": "xxxx",
-		"pos": "oo..",
+		"targ": Positioning.ENEMY_ALL,
+		"pos": Positioning.ALLY_BACK,
 		"apply": apply_stun(),
 	}
 
 
 func secondary():
-	# Heal the entire team for 40% MAG.
+	# Heal the entire team for 50% MAG.
 	return {
 		"type": MoveType.AOE_HEAL,
-		"val": mag * 0.4,
-		"targ": "oooo",
-		"pos": "oo..",
+		"val": mag * 0.5,
+		"targ": Positioning.ALLY_ALL,
+		"pos": Positioning.ALLY_BACK,
 	}
 
 	
@@ -51,8 +51,8 @@ func ultimate():
 	return {
 		"type": MoveType.AOE,
 		"val": mag * 0.75,
-		"targ": "xxxx",
-		"pos": "oo..",
+		"targ": Positioning.ENEMY_ALL,
+		"pos": Positioning.ALLY_BACK,
 		"apply": apply_disarm(),
 	}
 

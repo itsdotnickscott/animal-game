@@ -39,8 +39,8 @@ func attack():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": val,
-		"targ": "xx..",
-		"pos": "..oo",
+		"targ": Positioning.ENEMY_FRONT,
+		"pos": Positioning.ALLY_FRONT,
 	}
 
 
@@ -52,8 +52,8 @@ func primary():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": mag * 1.2,
-		"targ": ".xxx",
-		"pos": "..oo",
+		"targ": Positioning.ENEMY_BACK_3,
+		"pos": Positioning.ALLY_FRONT,
 	}
 
 
@@ -65,8 +65,8 @@ func secondary():
 	return {
 		"type": MoveType.SHIELD,
 		"val": mag * 1.0,
-		"targ": "self",
-		"pos": "oooo",
+		"targ": Positioning.SELF,
+		"pos": Positioning.ALLY_ALL,
 	}
 
 	
@@ -78,8 +78,8 @@ func ultimate():
 	return {
 		"type": MoveType.AOE,
 		"val": mag * 1.75,
-		"targ": "xx..",
-		"pos": "..oo",
+		"targ": Positioning.ENEMY_FRONT,
+		"pos": Positioning.ALLY_FRONT,
 	}
 
 
@@ -89,7 +89,7 @@ func shell(enter):
 	
 	shell_mode = enter
 	def += 0.1 if enter else -0.1
-	print("[note] MagicTurt " + "entered" if enter else "exited" + " his shell")
+	print("[note] MagicTurt " + ("entered" if enter else "exited") + " his shell")
 
 
 func check_flame():

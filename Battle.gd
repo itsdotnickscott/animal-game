@@ -8,26 +8,29 @@ var rng = RandomNumberGenerator.new()
 enum GameState {CHOOSE_ABILITY, CHOOSE_TARGET}
 const POS_COORDS = [19, 55, 91, 127, 193, 229, 265, 301]
 
-var player_team
+var positioning
+var ally_team
 var enemy_team
 
 var game_state
 var target
 var ability
 var initiative
+var curr_turn
 
 var r_num	# round number
 var t_num	# turn number
 
-var disarm
+var disarm	# if current player is disarmed
+var queue	# if heroes have queued abilities
 
 
 func _ready():
-	# Group: "player"
-	$Character1.init("MagicTurt")
-	$Character2.init("PowBun")
-	$Character3.init("CowDog")
-	$Character4.init("BardSnek")
+	# Group: "ally"
+	$Ally1.init("MagicTurt")
+	$Ally2.init("PowBun")
+	$Ally3.init("CowDog")
+	$Ally4.init("FireCat")
 
 	# Group: "enemy"
 	$Enemy1.init("SampleEnemy")
@@ -35,13 +38,15 @@ func _ready():
 	$Enemy3.init("SampleEnemy")
 	$Enemy4.init("SampleEnemy")
 
-	player_team = get_tree().get_nodes_in_group("player")
+	ally_team = get_tree().get_nodes_in_group("ally")
 	enemy_team = get_tree().get_nodes_in_group("enemy")
 
 	# Done for positioning purposes
-	player_team.invert()
+	ally_team.invert()
+	positioning = ally_team + enemy_team
 
 	disarm = false
+	queue = []
 
 	r_num = -1
 	rng.randomize()
@@ -58,10 +63,7 @@ func roll_initiative():
 	initiative = []
 
 	# Roll initiatives for each hero
-	for hero in player_team:
-		initiative.append({"hero": hero, "roll": hero.spd + rng.randf_range(0, 8)})
-
-	for hero in enemy_team:
+	for hero in positioning:
 		initiative.append({"hero": hero, "roll": hero.spd + rng.randf_range(0, 8)})
 
 	# Sort heroes in initiative order based off of roll
@@ -84,8 +86,9 @@ func next_turn():
 	t_num += 1
 	target = null
 	ability = null
+	curr_turn = initiative[t_num].hero
 
-	if initiative[t_num].hero == null:
+	if curr_turn == null:
 		next_turn()
 		return
 
@@ -94,60 +97,66 @@ func next_turn():
 
 func start_turn():
 	print("-------------------------")
-
 	disarm = false
+	set_info(curr_turn.name + "'s Turn")
 
-	var hero = initiative[t_num].hero
-	set_info(hero.name + "'s Turn")
-
+	# If character cannot act this turn
 	if resolve_status_effects():
 		next_turn()
 		return
 
+	if queue:
+		for abil in queue:
+			if abil.hero == curr_turn:
+				target = abil.target
+				execute_move(abil.move)
+				queue.erase(abil)
+				return
+
 	game_state = GameState.CHOOSE_ABILITY
 
 	# If enemy's turn, attack random target
-	if hero in enemy_team:
-		var targ = rng.randf_range(0, player_team.size()) as int
-		target = player_team[targ]
+	if curr_turn.is_in_group("enemy"):
+		var move = curr_turn.attack()
 
-		execute_damage(hero.attack())
+		random_target(move)
+		execute_damage(move)
 		next_turn()
 
 
 func resolve_status_effects():
-	var hero = initiative[t_num].hero
-
 	var skip_turn = false
-	for effect in hero.status:
+	for effect in curr_turn.status:
+		# Expired effect
 		if effect.turns == 0:
-			hero.clear_status(effect)
+			curr_turn.clear_status(effect)
 
 			if "status" in effect:
 				match effect.status:
 					StatusEffect.BURN:
-						printBattleMsg(hero.name + " is no longer burned")
+						printBattleMsg(curr_turn.name + " is no longer burned")
 		
 					StatusEffect.STUN:
-						printBattleMsg(hero.name + " is no longer stunned")
+						printBattleMsg(curr_turn.name + " is no longer stunned")
 		
 					StatusEffect.DISARM:
-						printBattleMsg(hero.name + " is no longer disarmed")
+						printBattleMsg(curr_turn.name + " is no longer disarmed")
 
 			continue
 
+		# Execute effect
 		if "status" in effect:
 			match effect.status:
 				StatusEffect.BURN:
-					hero.curr_hp -= effect.val
-					printBattleMsg(hero.name + " was burned for " + effect.val as String + " damage")
+					curr_turn.curr_hp -= effect.val
+					printBattleMsg(curr_turn.name + " was burned for " + effect.val as String + " damage")
 
 				StatusEffect.STUN:
-					printBattleMsg(hero.name + " is stunned, their turn is skipped")
+					printBattleMsg(curr_turn.name + " is stunned, their turn is skipped")
 					skip_turn = true
 
 				StatusEffect.DISARM:
-					printBattleMsg(hero.name + " is disarmed, they cannot attack")
+					printBattleMsg(curr_turn.name + " is disarmed, they cannot attack")
 					disarm = true
 
 		effect.turns -= 1
@@ -155,93 +164,109 @@ func resolve_status_effects():
 	return skip_turn
 
 
-func execute_move():
-	if target == null:
-		return
+func interrupt_queued_ability(targ):
+	for move in queue:
+		if move.hero == targ:
+			queue.erase(move)
 
-	var hero = initiative[t_num].hero
-	var move
 
-	match ability:
-		AbilityType.ATK:
-			move = hero.attack()
-			
-		AbilityType.PRI:
-			move = hero.primary()
-
-		AbilityType.SEC:
-			move = hero.secondary()
-
-		AbilityType.ULT:
-			move = hero.ultimate()
+func validate_move():
+	var move = get_chosen_ability()
 
 	if !valid_pos(move) || !valid_target(move):
 		return
 
-	if ability_success(move):
-		match move.type:
-			MoveType.DAMAGE:
-				execute_damage(move)
+	# Queued abilities are executed a turn later
+	if "queue" in move:
+		queue.append({"hero": curr_turn, "move": move, "target": target})
+		next_turn()
+		return
 
-			MoveType.AOE:
-				execute_aoe(move)
+	execute_move(move)
 
-			MoveType.STATUS:
-				execute_status(move.apply)
 
-			MoveType.SHIELD:
-				execute_shield(move)
+func execute_move(move):
+	# Handles repeated attacks
+	var num = 1 + (0 if !("repeat" in move) else move.repeat)
+	while(num > 0):
+		if ability_success(move):
+			if "random" in move:
+				random_target(move)
+			
+			match move.type:
+				MoveType.DAMAGE:
+					execute_damage(move)
 
-			MoveType.HEAL:
-				execute_heal(move)
+				MoveType.AOE:
+					execute_aoe(move)
 
-			MoveType.AOE_HEAL:
-				execute_aoe_heal(move)
+				MoveType.STATUS:
+					execute_status(move.apply)
 
-			_:
-				pass
+				MoveType.SHIELD:
+					execute_shield(move)
 
-		# Handle position-altering effects
-		if "move_self" in move:
-			swap_pos(hero, move.move_self)
-			printBattleMsg(hero.name + " moved " + move.move_self as String + " spaces")
+				MoveType.HEAL:
+					execute_heal(move)
 
-		if target in enemy_team && "move_targ" in move:
-			swap_pos(target, move.move_targ)
-			printBattleMsg(target.name + " moved " + move.move_targ as String + " spaces")
+				MoveType.AOE_HEAL:
+					execute_aoe_heal(move)
+
+			# Handle position-altering effects
+			if "move_targ" in move:
+				swap_pos(target, move.move_targ)
+				printBattleMsg(target.name + " moved " + move.move_targ as String + " spaces")
+
+			# If successive attacks get stronger/weaker
+			if "dmg_chg" in move:
+				move.val = move.val * move.dmg_chg
+
+		num -= 1
+
+	# Handle self position-altering effects
+	if "move_self" in move:
+		swap_pos(curr_turn, move.move_self)
+		printBattleMsg(curr_turn.name + " moved " + move.move_self as String + " spaces")
 
 	correct_positioning()
 	next_turn()
 
 
-func execute_damage(move, queue = false):
+func get_chosen_ability():
+	match ability:
+		AbilityType.ATK:
+			return curr_turn.attack()
+			
+		AbilityType.PRI:
+			return curr_turn.primary()
+
+		AbilityType.SEC:
+			return curr_turn.secondary()
+
+		AbilityType.ULT:
+			return curr_turn.ultimate()
+
+
+func random_target(move):
+	while(true):
+		var num = rng.randf_range(0, move.targ.size()) as int
+		var rand_targ = move.targ[num]
+
+		if positioning[rand_targ] == null:
+			continue
+
+		target = positioning[rand_targ]
+		break
+
+
+func execute_damage(move, k_queue = false):
 	target.take_damage(move.val)
-	printBattleMsg(initiative[t_num].hero.name + " dealt " + move.val as String + " damage to " + target.name)
-
-	# Handles repeating attacks
-	if "repeat" in move:
-		for _i in range(move.repeat): 
-			if ability_success(move):
-				# If targeting is random
-				if move.targ == "????":
-					var targ = rng.randf_range(0, enemy_team.size()) as int
-					target = enemy_team[targ]
-
-				# If successive attacks get stronger/weaker
-				if "dmg_chg" in move:
-					move.val = move.val * move.dmg_chg
-
-				target.take_damage(move.val)
-				printBattleMsg(initiative[t_num].hero.name + " dealt " + move.val as String + " damage to " + target.name)
-
-				# If target loses all HP
-				if target.curr_hp <= 0:
-						kill_hero(target)
+	printBattleMsg(curr_turn.name + " dealt " + move.val as String + " damage to " + target.name)
 
 	# If target loses all HP
 	if target.curr_hp <= 0:
 		# If queue is activated, place target in kill queue, otherwise immediately kill
-		if queue:
+		if k_queue:
 			return true
 		else:
 			kill_hero(target)
@@ -252,30 +277,23 @@ func execute_damage(move, queue = false):
 			execute_status(move.apply)
 
 	# If queue is activated, target is not dead so do not place in kill queue
-	if queue:
+	if k_queue:
 		return false
 
 
 func execute_aoe(move):
 	var kill_queue = []
-	var pos = -1
 
-	var targ_team = enemy_team if initiative[t_num].hero in player_team else player_team
+	for hero in move.targ:
+		if positioning[hero] != null:
+			target = positioning[hero]
 
-	for enemy in targ_team:
-		pos += 1
+			if execute_damage(move, true):
+				kill_queue.append(target)
 
-		if move.targ[pos] == ".":
-			continue
-
-		target = enemy
-
-		if execute_damage(move, true):
-			kill_queue.append(target)
-
-		# If successive attacks get stronger/weaker
-		if "dmg_chg" in move:
-			move.val = move.val * move.dmg_chg
+			# If successive attacks get stronger/weaker
+			if "dmg_chg" in move:
+				move.val = move.val * move.dmg_chg
 
 	for dead in kill_queue:
 		kill_hero(dead)
@@ -284,55 +302,45 @@ func execute_aoe(move):
 func execute_status(effect):
 	target.apply_status(effect)
 
-	var hero = initiative[t_num].hero
 	if "status" in effect:
 		match effect.status:
 			StatusEffect.BURN:
-				printBattleMsg(target.name + " was burned by " + hero.name + " for " + effect.turns as String + " turns")
+				printBattleMsg(target.name + " was burned by " + curr_turn.name + " for " + effect.turns as String + " turns")
 
 			StatusEffect.STUN:
-				printBattleMsg(target.name + " was stunned by " + hero.name + " for " + effect.turns as String + " turns")
+				interrupt_queued_ability(target)
+				printBattleMsg(target.name + " was stunned by " + curr_turn.name + " for " + effect.turns as String + " turns")
 
 			StatusEffect.DISARM:
-				printBattleMsg(target.name + " was disarmed by " + hero.name + " for " + effect.turns as String + " turns")
+				printBattleMsg(target.name + " was disarmed by " + curr_turn.name + " for " + effect.turns as String + " turns")
 
 
 func execute_shield(move):
 	target.gain_shield(move.val)
-	printBattleMsg(initiative[t_num].hero.name + " shielded " + target.name + " for " + move.val as String + "HP")
+	printBattleMsg(curr_turn.name + " shielded " + target.name + " for " + move.val as String + "HP")
 
 
 func execute_heal(move):
 	target.heal(move.val)
-	printBattleMsg(initiative[t_num].hero.name + " healed " + target.name + " for " + move.val as String + "HP")
+	printBattleMsg(curr_turn.name + " healed " + target.name + " for " + move.val as String + "HP")
 
 
 func execute_aoe_heal(move):
-	var pos = -1
-	var targ_team = player_team if initiative[t_num].hero in player_team else enemy_team
-
-	for ally in targ_team:
-		pos += 1
-
-		if move.targ[pos] == ".":
-			continue
-
-		target = ally
-
-		execute_heal(move)
+	for hero in move.targ:
+		if positioning[hero] != null:
+			target = positioning[hero]
+			execute_heal(move)
 
 
 func ability_success(move):
-	var hero = initiative[t_num].hero
-
 	if "pre_check" in move:
-		if !hero.call(move.pre_check, target):
+		if !curr_turn.call(move.pre_check, target):
 			return false
 
 	# Roll for accuracy
 	var roll = rng.randf()
-	if roll > hero.acc:
-		printBattleMsg(initiative[t_num].hero.name + " missed")
+	if roll > curr_turn.acc:
+		printBattleMsg(curr_turn.name + " missed")
 		return false
 
 	return true
@@ -340,30 +348,25 @@ func ability_success(move):
 
 func valid_target(move):
 	# Self-targeted ability
-	if move.targ == "self":
-		if target != initiative[t_num].hero:
+	if move.targ == Positioning.SELF:
+		if target != curr_turn:
 			print("[note] Must use this ability on self")
 			return false
 
 		return true
 
-	var targ_team = player_team if "o" in move.targ else enemy_team
-	var pos = targ_team.find(target)
-
-	if target in targ_team:
-		if move.targ[pos] != ".":
-			return true
+	var pos = positioning.find(target)
+	if move.targ.has(pos):
+		return true
 
 	print("[note] Invalid target")
 	return false
 
 
 func valid_pos(move):
-	var hero = initiative[t_num].hero
-	var targ_team = player_team if hero in player_team else enemy_team
-	var idx = targ_team.find(hero)
+	var idx = positioning.find(curr_turn)
 
-	if move.pos[idx] == "o":
+	if move.pos.has(idx):
 		return true
 
 	print("[note] Invalid positioning")
@@ -375,7 +378,7 @@ func swap_pos(hero, num):
 	if num == 0:
 		return
 
-	var targ_team = player_team if hero in player_team else enemy_team
+	var targ_team = ally_team if hero.is_in_group("ally") else enemy_team
 	var idx = targ_team.find(hero)
 	var move_num = check_pos_boundaries(idx, num, targ_team)
 		
@@ -407,8 +410,8 @@ func kill_hero(hero):
 		if roll.hero == hero:
 			roll.hero = null
 
-	if hero in player_team:
-		player_team.erase(hero)
+	if hero.is_in_group("ally"):
+		ally_team.erase(hero)
 	else:
 		enemy_team.erase(hero)
 
@@ -417,13 +420,15 @@ func kill_hero(hero):
 
 	
 func correct_positioning():
-	var size = player_team.size()
-	for hero in player_team:
+	var size = ally_team.size()
+	for hero in ally_team:
 		hero.position.x = POS_COORDS[4 - size]
+		positioning[4 - size] = hero
 		size -= 1
 
 	for hero in enemy_team:
 		hero.position.x = POS_COORDS[4 + size]
+		positioning[4 + size] = hero
 		size += 1
 
 
@@ -445,7 +450,7 @@ func _on_Character_selected(node):
 	target = node
 
 	if game_state == GameState.CHOOSE_TARGET:
-		execute_move()
+		validate_move()
 
 
 func printBattleMsg(msg):

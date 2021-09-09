@@ -12,7 +12,7 @@ func load_stats():
 	atk     = 8
 	mag 	= 4
 	crit    = 0
-	acc     = 0.9
+	acc     = 0.95
 	def     = 0
 	dodge   = 0
 	spd     = 6
@@ -25,8 +25,8 @@ func attack():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.1,
-		"targ": "xxxx",
-		"pos": "oo..",
+		"targ": Positioning.ENEMY_ALL,
+		"pos": Positioning.ALLY_BACK,
 		"apply": apply_burn(),
 	}
 
@@ -37,8 +37,8 @@ func primary():
 	return {
 		"type": MoveType.AOE,
 		"val": atk * 0.5,
-		"targ": "xxxx",
-		"pos": "oo..",
+		"targ": Positioning.ENEMY_ALL,
+		"pos": Positioning.ALLY_BACK,
 		"dmg_chg": 0.5,
 		"apply": apply_burn(),
 	}
@@ -49,8 +49,8 @@ func secondary():
 	# While on fire, abilities apply a BURN.
 	return {
 		"type": MoveType.STATUS,
-		"targ": "self",
-		"pos": "oooo",
+		"targ": Positioning.SELF,
+		"pos": Positioning.ALLY_ALL,
 		"apply": apply_on_fire(),
 	}
 
@@ -61,8 +61,8 @@ func ultimate():
 		"type": MoveType.AOE,
 		"val": atk * 1.5,
 		"pre_check": "check_for_burn",
-		"targ": "xxxx",
-		"pos": "oo..",
+		"targ": Positioning.ENEMY_ALL,
+		"pos": Positioning.ALLY_BACK,
 		"apply": apply_burn(),
 	}
 
@@ -96,7 +96,7 @@ func check_for_burn(hero):
 
 
 func apply_status(effect):
-	if on_fire in effect:
+	if "on_fire" in effect:
 		on_fire = effect.on_fire
 		print("[note] CatArcher is on fire")
 

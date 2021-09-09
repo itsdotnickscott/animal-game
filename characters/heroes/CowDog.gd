@@ -20,8 +20,8 @@ func attack():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.2,
-		"targ": "xxxx",
-		"pos": "ooo.",
+		"targ": Positioning.ENEMY_ALL,
+		"pos": Positioning.ALLY_BACK_3,
 	}
 
 
@@ -30,8 +30,8 @@ func primary():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": mag * 0.75,
-		"targ": "xx..",
-		"pos": "oo..",
+		"targ": Positioning.ENEMY_FRONT,
+		"pos": Positioning.ALLY_BACK_3,
 		"move_self": 1,
 		"apply": apply_stun(),
 	}
@@ -43,8 +43,8 @@ func secondary():
 	return {
 		"type": MoveType.AOE, 
 		"val": atk * 0.80,
-		"targ": "xx..",
-		"pos": "..oo",
+		"targ": Positioning.ENEMY_FRONT,
+		"pos": Positioning.ALLY_FRONT,
 		"move_self": -2,
 		"dmg_chg": 0.5,
 	}
@@ -55,8 +55,9 @@ func ultimate():
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 0.5,
-		"targ": "????",
-		"pos": "oo..",
+		"targ": Positioning.ENEMY_ALL,
+		"pos": Positioning.ALLY_BACK_3,
+		"random": true,
 		"repeat": 5,
 	}
 

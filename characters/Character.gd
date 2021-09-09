@@ -82,3 +82,7 @@ func clear_status(effect):
 
 	if "dodge" in effect:
 		dodge -= effect.dodge
+
+
+func _to_string():
+	return name
