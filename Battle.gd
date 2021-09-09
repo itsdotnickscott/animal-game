@@ -6,6 +6,7 @@ class_name Battle
 var rng = RandomNumberGenerator.new()
 
 enum GameState {CHOOSE_ABILITY, CHOOSE_TARGET}
+const POS_COORDS = [19, 55, 91, 127, 193, 229, 265, 301]
 
 var player_team
 var enemy_team
@@ -151,8 +152,19 @@ func execute_move():
 		MoveType.STATUS:
 			target.apply_status(move.apply)
 
+		MoveType.SHIELD:
+			hero.shield += move.val
+
 		_:
 			pass
+
+	if "move_self" in move:
+		swap_pos(hero, move.move_self)
+
+	if target in enemy_team && "move_targ" in move:
+		swap_pos(target, move.move_targ)
+
+	correct_positioning()
 
 	next_turn()
 
@@ -226,20 +238,15 @@ func execute_aoe(move):
 
 
 func ability_success(move):
-	if "check" in move:
-		var hit = false
+	var hero = initiative[t_num].hero
 
-		# Check if ability requires a check on status effects to hit
-		for effect in target.status:
-			if effect.status == move.check:
-				hit = true
-
-		if !hit:
+	if "pre_check" in move:
+		if !hero.call(move.pre_check, target):
 			return false
 
 	# Roll for accuracy
 	var roll = rng.randf()
-	if roll > initiative[t_num].hero.acc:
+	if roll > hero.acc:
 		print(getRoundTurnString(), initiative[t_num].hero.name + " missed")
 		return false
 
@@ -269,7 +276,7 @@ func valid_target(move):
 func valid_pos(move):
 	var hero = initiative[t_num].hero
 	var targ_team = player_team if hero in player_team else enemy_team
-	var idx = targ_team.find(target)
+	var idx = targ_team.find(hero)
 
 	if move.pos[idx] == "o":
 		return true
@@ -278,18 +285,61 @@ func valid_pos(move):
 	return false
 
 
+func swap_pos(hero, num):
+	# No more swaps
+	if num == 0:
+		return
+
+	var targ_team = player_team if hero in player_team else enemy_team
+	var idx = targ_team.find(hero)
+	var move_num = check_pos_boundaries(idx, num, targ_team)
+		
+	# Swap positions
+	targ_team[idx] = targ_team[idx + move_num]
+	targ_team[idx + move_num] = hero
+
+	# Run recursively
+	swap_pos(hero, num - move_num)
+
+
+func check_pos_boundaries(idx, num, targ_team):
+	# Check boundaries
+	if num > 0:
+		if idx + 1 >= targ_team.size():
+			return 0
+
+		return 1
+
+	else:
+		if idx - 1 < 0:
+			return 0
+
+		return -1
+
+
 func kill_hero(hero):
 	for roll in initiative:
 		if roll.hero == hero:
 			roll.hero = null
 
-	if player_team.has(hero):
+	if hero in player_team:
 		player_team.erase(hero)
 	else:
 		enemy_team.erase(hero)
 
 	hero.queue_free()
 	print(getRoundTurnString(), hero.name + " died")
+
+	
+func correct_positioning():
+	var size = player_team.size()
+	for hero in player_team:
+		hero.position.x = POS_COORDS[4 - size]
+		size -= 1
+
+	for hero in enemy_team:
+		hero.position.x = POS_COORDS[4 + size]
+		size += 1
 
 
 func set_info(msg):

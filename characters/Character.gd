@@ -17,11 +17,18 @@ var spd     # determines initiative in battle
 
 var curr_hp # current health
 var status  # current buffs/debuffs
+var shield  # current shield value
 
 
 func init(name):
 	set_script(load("res://characters/heroes/" + name + ".gd"))
 	load_stats()
+
+	curr_hp = max_hp
+	status = []
+	shield = 0
+
+	update_labels()
 
 
 func load_stats():
@@ -35,7 +42,15 @@ func _on_Character_input_event(_viewport, event, _shape_idx):
 
 
 func take_damage(val):
-	curr_hp -= val
+	if shield > 0:
+		shield -= val
+
+		if shield < 0:
+			curr_hp += shield
+			shield = 0
+
+	else:
+		curr_hp -= val
 
 	update_labels()
 

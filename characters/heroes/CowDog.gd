@@ -14,11 +14,6 @@ func load_stats():
 	dodge   = 0
 	spd     = 5
 
-	curr_hp = max_hp
-	status = []
-
-	update_labels()
-
 
 func attack():
 	# Shoot CowDog's gun at one target for 120% ATK.

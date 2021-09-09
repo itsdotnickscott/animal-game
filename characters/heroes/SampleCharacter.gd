@@ -12,11 +12,6 @@ func load_stats():
 	dodge   = 0
 	spd     = 0
 
-	curr_hp = max_hp
-	status = []
-
-	update_labels()
-
 
 func attack():
 	# Attack one target for 100% ATK

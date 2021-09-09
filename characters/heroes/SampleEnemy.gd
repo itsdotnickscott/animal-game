@@ -3,7 +3,7 @@ extends Character
 
 func load_stats():
 	$Sprite.texture = preload("res://assets/sample_enemy.png")
-	max_hp  = 10
+	max_hp  = 100
 	atk     = 5
 	mag		= 0
 	crit    = 0
@@ -11,11 +11,6 @@ func load_stats():
 	def     = 0
 	dodge   = 0
 	spd     = 0
-
-	curr_hp = max_hp
-	status = []
-
-	update_labels()
 
 
 func attack():

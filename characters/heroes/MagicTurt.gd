@@ -21,19 +21,21 @@ func load_stats():
 	dodge   = 0
 	spd     = 0
 
-	curr_hp = max_hp
-	status = []
 	shell_mode = false
 	flame = 5
 
-	update_labels()
-
 
 func attack():
-	# Headbutt a target for 100% ATK and gain 1 Flame.
+	# Headbutt a target for 100% ATK.
+	# Using this attack while in MagicTurt's shell will deal an additional 80% MAG, restoring all
+	# of MagicTurt's missing Flame. MagicTurt leaves his shell.
+	var val = atk * 1.0 + (mag * 0.8 if shell_mode else 0)
+	flame = 5
+	shell(false)
+
 	return {
 		"type": MoveType.DAMAGE,
-		"val": atk * 1.0,
+		"val": val,
 		"targ": "xx..",
 		"pos": "..oo",
 	}
@@ -41,6 +43,9 @@ func attack():
 
 func primary():
 	# Shoot a fireball at a target for 120% MAG. Flame Cost: 2
+	flame -= 2
+	check_flame()
+
 	return {
 		"type": MoveType.DAMAGE,
 		"val": mag * 1.2,
@@ -51,6 +56,9 @@ func primary():
 
 func secondary():
 	# Create a fiery shield equal to 100% MAG for 2 turns. Flame Cost: 1
+	flame -= 1
+	check_flame()
+
 	return {
 		"type": MoveType.SHIELD,
 		"val": mag * 1.0,
@@ -60,12 +68,36 @@ func secondary():
 
 	
 func ultimate():
-	# Engulf the front line with a flame dealing 175% MAG. Flame Cost: 4
+	# Engulf the front line with a flame dealing 175% MAG. Flame Cost: 3
+	flame -= 3
+	check_flame()
+
 	return {
 		"type": MoveType.AOE,
 		"val": mag * 1.75,
 		"targ": "xx..",
 		"pos": "..oo",
+	}
+
+
+func shell(enter):
+	if shell_mode == enter:
+		return
+	
+	shell_mode = enter
+	def += 0.1 if enter else -0.1
+
+
+func check_flame():
+	if flame <= 0:
+		apply_status(apply_stun())
+
+
+func apply_stun():
+	# Stuns the target for 1 turn.
+	return {
+		"status": StatusEffect.STUN,
+		"turns": 1,
 	}
 
 
@@ -78,6 +110,9 @@ func take_damage(val):
 
 
 func apply_status(effect):
+	if effect.status == StatusEffect.STUN:
+		shell(true)
+	
 	.apply_status(effect)
 
 

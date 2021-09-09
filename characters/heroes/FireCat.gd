@@ -17,11 +17,7 @@ func load_stats():
 	dodge   = 0
 	spd     = 6
 
-	curr_hp = max_hp
-	status = []
 	on_fire = false
-
-	update_labels()
 
 
 func attack():
@@ -64,7 +60,7 @@ func ultimate():
 	return {
 		"type": MoveType.AOE,
 		"val": atk * 1.5,
-		"check": StatusEffect.BURN,
+		"pre_check": "check_for_burn",
 		"targ": "xxxx",
 		"pos": "oo..",
 		"apply": apply_burn(),
@@ -91,6 +87,14 @@ func apply_burn():
 	}
 
 
+func check_for_burn(hero):
+	for effect in hero.status:
+		if effect.status == StatusEffect.BURN:
+			return true
+
+	return false
+
+
 func update_labels():
 	.update_labels()
 
@@ -100,7 +104,7 @@ func take_damage(val):
 
 
 func apply_status(effect):
-	if effect.on_fire:
+	if on_fire in effect:
 		on_fire = effect.on_fire
 		print("[status]", " CatArcher is on fire")
 

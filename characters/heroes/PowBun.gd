@@ -14,11 +14,6 @@ func load_stats():
 	dodge   = 0
 	spd     = 8
 
-	curr_hp = max_hp
-	status = []
-
-	update_labels()
-
 
 func attack():
 	# Punch a target twice, the first dealing 60% ATK, and the second dealing 90% ATK.
@@ -39,7 +34,7 @@ func primary():
 		"val": atk * 1.5,
 		"targ": "xx..",
 		"pos": "..oo",
-		"move_targ": -2
+		"move_targ": 2
 	}
 
 
