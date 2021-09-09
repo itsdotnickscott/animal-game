@@ -19,13 +19,15 @@ var initiative
 var r_num	# round number
 var t_num	# turn number
 
+var disarm
+
 
 func _ready():
 	# Group: "player"
 	$Character1.init("MagicTurt")
 	$Character2.init("PowBun")
 	$Character3.init("CowDog")
-	$Character4.init("FireCat")
+	$Character4.init("BardSnek")
 
 	# Group: "enemy"
 	$Enemy1.init("SampleEnemy")
@@ -38,6 +40,8 @@ func _ready():
 
 	# Done for positioning purposes
 	player_team.invert()
+
+	disarm = false
 
 	r_num = -1
 	rng.randomize()
@@ -89,26 +93,18 @@ func next_turn():
 
 
 func start_turn():
+	print("-------------------------")
+
+	disarm = false
+
 	var hero = initiative[t_num].hero
 	set_info(hero.name + "'s Turn")
 
-	# Resolve any status effects
-	for effect in hero.status:
-		if "status" in effect:
-			match effect.status:
-				StatusEffect.BURN:
-					hero.curr_hp -= effect.val
-					print("[status] ", hero.name + " was burned for " + effect.val as String + " damage")
+	if resolve_status_effects():
+		next_turn()
+		return
 
-				StatusEffect.STUN:
-					print("[status] ", hero.name + " is stunned")
-					next_turn()
-					return
-
-		effect.turns -= 1
-
-		if effect.turns == 0:
-			hero.clear_status(effect)
+	game_state = GameState.CHOOSE_ABILITY
 
 	# If enemy's turn, attack random target
 	if hero in enemy_team:
@@ -117,12 +113,52 @@ func start_turn():
 
 		execute_damage(hero.attack())
 		next_turn()
-		return
 
-	game_state = GameState.CHOOSE_ABILITY
+
+func resolve_status_effects():
+	var hero = initiative[t_num].hero
+
+	var skip_turn = false
+	for effect in hero.status:
+		if effect.turns == 0:
+			hero.clear_status(effect)
+
+			if "status" in effect:
+				match effect.status:
+					StatusEffect.BURN:
+						printBattleMsg(hero.name + " is no longer burned")
+		
+					StatusEffect.STUN:
+						printBattleMsg(hero.name + " is no longer stunned")
+		
+					StatusEffect.DISARM:
+						printBattleMsg(hero.name + " is no longer disarmed")
+
+			continue
+
+		if "status" in effect:
+			match effect.status:
+				StatusEffect.BURN:
+					hero.curr_hp -= effect.val
+					printBattleMsg(hero.name + " was burned for " + effect.val as String + " damage")
+
+				StatusEffect.STUN:
+					printBattleMsg(hero.name + " is stunned, their turn is skipped")
+					skip_turn = true
+
+				StatusEffect.DISARM:
+					printBattleMsg(hero.name + " is disarmed, they cannot attack")
+					disarm = true
+
+		effect.turns -= 1
+
+	return skip_turn
 
 
 func execute_move():
+	if target == null:
+		return
+
 	var hero = initiative[t_num].hero
 	var move
 
@@ -142,44 +178,50 @@ func execute_move():
 	if !valid_pos(move) || !valid_target(move):
 		return
 
-	match move.type:
-		MoveType.DAMAGE:
-			execute_damage(move)
+	if ability_success(move):
+		match move.type:
+			MoveType.DAMAGE:
+				execute_damage(move)
 
-		MoveType.AOE:
-			execute_aoe(move)
+			MoveType.AOE:
+				execute_aoe(move)
 
-		MoveType.STATUS:
-			target.apply_status(move.apply)
+			MoveType.STATUS:
+				execute_status(move.apply)
 
-		MoveType.SHIELD:
-			hero.shield += move.val
+			MoveType.SHIELD:
+				execute_shield(move)
 
-		_:
-			pass
+			MoveType.HEAL:
+				execute_heal(move)
 
-	if "move_self" in move:
-		swap_pos(hero, move.move_self)
+			MoveType.AOE_HEAL:
+				execute_aoe_heal(move)
 
-	if target in enemy_team && "move_targ" in move:
-		swap_pos(target, move.move_targ)
+			_:
+				pass
+
+		# Handle position-altering effects
+		if "move_self" in move:
+			swap_pos(hero, move.move_self)
+			printBattleMsg(hero.name + " moved " + move.move_self as String + " spaces")
+
+		if target in enemy_team && "move_targ" in move:
+			swap_pos(target, move.move_targ)
+			printBattleMsg(target.name + " moved " + move.move_targ as String + " spaces")
 
 	correct_positioning()
-
 	next_turn()
 
 
 func execute_damage(move, queue = false):
-	if target == null:
-		pass
+	target.take_damage(move.val)
+	printBattleMsg(initiative[t_num].hero.name + " dealt " + move.val as String + " damage to " + target.name)
 
-	if ability_success(move):
-		target.take_damage(move.val)
-		print(getRoundTurnString(), initiative[t_num].hero.name + " dealt " + move.val as String + " damage to " + target.name)
-
-		# Handles repeating attacks
-		if "repeat" in move:
-			for _i in range(move.repeat): 
+	# Handles repeating attacks
+	if "repeat" in move:
+		for _i in range(move.repeat): 
+			if ability_success(move):
 				# If targeting is random
 				if move.targ == "????":
 					var targ = rng.randf_range(0, enemy_team.size()) as int
@@ -190,24 +232,24 @@ func execute_damage(move, queue = false):
 					move.val = move.val * move.dmg_chg
 
 				target.take_damage(move.val)
-				print(getRoundTurnString(), initiative[t_num].hero.name + " dealt " + move.val as String + " damage to " + target.name)
+				printBattleMsg(initiative[t_num].hero.name + " dealt " + move.val as String + " damage to " + target.name)
 
 				# If target loses all HP
 				if target.curr_hp <= 0:
 						kill_hero(target)
 
-		# If target loses all HP
-		if target.curr_hp <= 0:
-			# If queue is activated, place target in kill queue, otherwise immediately kill
-			if queue:
-				return true
-			else:
-				kill_hero(target)
+	# If target loses all HP
+	if target.curr_hp <= 0:
+		# If queue is activated, place target in kill queue, otherwise immediately kill
+		if queue:
+			return true
+		else:
+			kill_hero(target)
 
-		# Apply debuff to target
-		if "apply" in move:
-			if move.apply != null:
-				target.apply_status(move.apply)
+	# Apply debuff to target
+	if "apply" in move:
+		if move.apply != null:
+			execute_status(move.apply)
 
 	# If queue is activated, target is not dead so do not place in kill queue
 	if queue:
@@ -218,13 +260,15 @@ func execute_aoe(move):
 	var kill_queue = []
 	var pos = -1
 
-	for hero in enemy_team:
+	var targ_team = enemy_team if initiative[t_num].hero in player_team else player_team
+
+	for enemy in targ_team:
 		pos += 1
 
 		if move.targ[pos] == ".":
 			continue
 
-		target = hero
+		target = enemy
 
 		if execute_damage(move, true):
 			kill_queue.append(target)
@@ -237,6 +281,47 @@ func execute_aoe(move):
 		kill_hero(dead)
 
 
+func execute_status(effect):
+	target.apply_status(effect)
+
+	var hero = initiative[t_num].hero
+	if "status" in effect:
+		match effect.status:
+			StatusEffect.BURN:
+				printBattleMsg(target.name + " was burned by " + hero.name + " for " + effect.turns as String + " turns")
+
+			StatusEffect.STUN:
+				printBattleMsg(target.name + " was stunned by " + hero.name + " for " + effect.turns as String + " turns")
+
+			StatusEffect.DISARM:
+				printBattleMsg(target.name + " was disarmed by " + hero.name + " for " + effect.turns as String + " turns")
+
+
+func execute_shield(move):
+	target.gain_shield(move.val)
+	printBattleMsg(initiative[t_num].hero.name + " shielded " + target.name + " for " + move.val as String + "HP")
+
+
+func execute_heal(move):
+	target.heal(move.val)
+	printBattleMsg(initiative[t_num].hero.name + " healed " + target.name + " for " + move.val as String + "HP")
+
+
+func execute_aoe_heal(move):
+	var pos = -1
+	var targ_team = player_team if initiative[t_num].hero in player_team else enemy_team
+
+	for ally in targ_team:
+		pos += 1
+
+		if move.targ[pos] == ".":
+			continue
+
+		target = ally
+
+		execute_heal(move)
+
+
 func ability_success(move):
 	var hero = initiative[t_num].hero
 
@@ -247,7 +332,7 @@ func ability_success(move):
 	# Roll for accuracy
 	var roll = rng.randf()
 	if roll > hero.acc:
-		print(getRoundTurnString(), initiative[t_num].hero.name + " missed")
+		printBattleMsg(initiative[t_num].hero.name + " missed")
 		return false
 
 	return true
@@ -257,7 +342,7 @@ func valid_target(move):
 	# Self-targeted ability
 	if move.targ == "self":
 		if target != initiative[t_num].hero:
-			print("Must use this ability on self")
+			print("[note] Must use this ability on self")
 			return false
 
 		return true
@@ -269,7 +354,7 @@ func valid_target(move):
 		if move.targ[pos] != ".":
 			return true
 
-	print("Invalid target")
+	print("[note] Invalid target")
 	return false
 
 
@@ -281,7 +366,7 @@ func valid_pos(move):
 	if move.pos[idx] == "o":
 		return true
 
-	print("Invalid positioning")
+	print("[note] Invalid positioning")
 	return false
 
 
@@ -328,7 +413,7 @@ func kill_hero(hero):
 		enemy_team.erase(hero)
 
 	hero.queue_free()
-	print(getRoundTurnString(), hero.name + " died")
+	printBattleMsg(hero.name + " died")
 
 	
 func correct_positioning():
@@ -347,6 +432,9 @@ func set_info(msg):
 
 
 func _on_AbilityHUD_ability(abil):
+	if disarm && abil == AbilityType.ATK:
+		print("[note] Hero is disarmed, cannot attack")
+
 	ability = abil
 	game_state = GameState.CHOOSE_TARGET
 
@@ -360,5 +448,5 @@ func _on_Character_selected(node):
 		execute_move()
 
 
-func getRoundTurnString():
-	return "[r" + (r_num + 1) as String + "t" + (t_num + 1) as String + "] "
+func printBattleMsg(msg):
+	print("[r" + (r_num + 1) as String + "t" + (t_num + 1) as String + "] " + msg)

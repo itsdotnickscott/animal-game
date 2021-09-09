@@ -29,9 +29,12 @@ func attack():
 	# Headbutt a target for 100% ATK.
 	# Using this attack while in MagicTurt's shell will deal an additional 80% MAG, restoring all
 	# of MagicTurt's missing Flame. MagicTurt leaves his shell.
-	var val = atk * 1.0 + (mag * 0.8 if shell_mode else 0)
-	flame = 5
-	shell(false)
+	var val = atk * 1.0
+
+	if shell_mode:
+		flame = 5
+		shell(false)
+		val += mag * 0.8
 
 	return {
 		"type": MoveType.DAMAGE,
@@ -86,6 +89,7 @@ func shell(enter):
 	
 	shell_mode = enter
 	def += 0.1 if enter else -0.1
+	print("[note] MagicTurt " + "entered" if enter else "exited" + " his shell")
 
 
 func check_flame():
@@ -101,20 +105,8 @@ func apply_stun():
 	}
 
 
-func update_labels():
-	.update_labels()
-
-
-func take_damage(val):
-	.take_damage(val)
-
-
 func apply_status(effect):
 	if effect.status == StatusEffect.STUN:
 		shell(true)
 	
 	.apply_status(effect)
-
-
-func clear_status(effect):
-	.clear_status(effect)

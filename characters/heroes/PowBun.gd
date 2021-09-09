@@ -28,24 +28,25 @@ func attack():
 
 
 func primary():
-	# Sucker punch a target for 150% ATK, pushing them back 2 spaces, and stunning them.
+	# PowBun winds up for a sucker punch, dealing 150% ATK, pushing them back 2 spaces, 
+	# and stunning them.
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.5,
 		"targ": "xx..",
 		"pos": "..oo",
-		"move_targ": 2
+		"move_targ": 2,
+		"apply": apply_stun(),
 	}
 
 
 func secondary():
-	# Take a defensive stance, increasing PowBun's DEF by 10 and CRIT by 10 for 3 turns.
+	# Focus, increasing PowBun's CRIT by 10 for 3 turns.
 	return {
 		"type": MoveType.STATUS,
 		"targ": "self",
 		"pos": "oooo",
 		"apply": apply_defense(),
-
 	}
 
 	
@@ -63,23 +64,14 @@ func ultimate():
 
 func apply_defense():
 	return {
-		"def": 0.1,
 		"crit": 0.1,
 		"turns": 3,
 	}
 
 
-func update_labels():
-	.update_labels()
-
-
-func take_damage(val):
-	.take_damage(val)
-
-
-func apply_status(effect):
-	.apply_status(effect)
-
-
-func clear_status(effect):
-	.clear_status(effect)
+func apply_stun():
+	# Stuns the target for 1 turn.
+	return {
+		"status": StatusEffect.STUN,
+		"turns": 1,
+	}

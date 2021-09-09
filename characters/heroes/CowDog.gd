@@ -67,19 +67,3 @@ func apply_stun():
 		"status": StatusEffect.STUN,
 		"turns": 1,
 	}
-
-
-func update_labels():
-	.update_labels()
-
-
-func take_damage(val):
-	.take_damage(val)
-
-
-func apply_status(effect):
-	.apply_status(effect)
-
-
-func clear_status(effect):
-	.clear_status(effect)

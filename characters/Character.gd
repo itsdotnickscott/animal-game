@@ -55,6 +55,16 @@ func take_damage(val):
 	update_labels()
 
 
+func heal(val):
+	curr_hp = max_hp if curr_hp + val > max_hp else curr_hp + val
+
+	update_labels()
+
+
+func gain_shield(val):
+	shield += val
+
+
 func update_labels():
 	var hp = curr_hp as int
 	$HPLabel.text = hp as String + "HP"
@@ -66,20 +76,9 @@ func apply_status(effect):
 	if "dodge" in effect:
 		dodge += effect.dodge
 
-	if "status" in effect:
-		match effect.status:
-			StatusEffect.BURN:
-				curr_hp = effect.val
-				print("[status] ", name + " is burned")
-
-			StatusEffect.STUN:
-				print("[status] ", name + " is stunned")
-
 
 func clear_status(effect):
 	status.erase(effect)
 
 	if "dodge" in effect:
 		dodge -= effect.dodge
-
-	print("[status] ", name + "'s status effect has worn out")

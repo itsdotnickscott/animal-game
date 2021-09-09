@@ -95,18 +95,10 @@ func check_for_burn(hero):
 	return false
 
 
-func update_labels():
-	.update_labels()
-
-
-func take_damage(val):
-	.take_damage(val)
-
-
 func apply_status(effect):
 	if on_fire in effect:
 		on_fire = effect.on_fire
-		print("[status]", " CatArcher is on fire")
+		print("[note] CatArcher is on fire")
 
 	.apply_status(effect)
 
@@ -114,5 +106,6 @@ func apply_status(effect):
 func clear_status(effect):
 	if effect.on_fire:
 		on_fire = !effect.on_fire
+		print("[note] CatArcher is no longer on fire")
 
 	.clear_status(effect)
