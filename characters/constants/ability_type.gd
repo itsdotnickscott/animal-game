@@ -6,4 +6,6 @@ enum {
 	PRI,
 	SEC,
 	ULT,
+	M_L,
+	M_R,
 }

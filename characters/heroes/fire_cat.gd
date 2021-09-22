@@ -60,7 +60,7 @@ func ultimate():
 	return {
 		"type": MoveType.AOE,
 		"val": atk * 1.5,
-		"pre_check": "check_for_burn",
+		"pre_check": ["check_for_burn"],
 		"targ": Positioning.ENEMY_ALL,
 		"pos": Positioning.ALLY_BACK,
 		"apply": apply_burn(),
@@ -80,11 +80,11 @@ func apply_burn():
 		return null
 
 	# Deals 75% MAG over 3 turns.
-	return {
+	return ({
 		"status": StatusEffect.BURN,
 		"val": mag * 0.25,
 		"turns": 3,
-	}
+	}).duplicate() 
 
 
 func check_for_burn(hero):

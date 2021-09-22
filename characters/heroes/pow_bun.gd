@@ -30,17 +30,17 @@ func attack():
 func primary():
 	# PowBun winds up for a sucker punch, dealing 150% ATK on the next turn, pushing them back 
 	# 2 spaces, stunning them. PowBun moves forward 1 space.
-	print("[note] PowBun is winding up for an attack")
+	print("[note] PowBun is winding up for an attack!")
 
 	return {
 		"type": MoveType.DAMAGE,
 		"val": atk * 1.5,
-		"targ": Positioning.ENEMY_FRONT,
+		"targ": Positioning.ENEMY_1,
 		"pos": Positioning.ALLY_FRONT,
 		"move_targ": 2,
 		"move_self": 1,
 		"apply": apply_stun(),
-		"queue": true
+		"queue": true,
 	}
 
 
@@ -58,9 +58,24 @@ func ultimate():
 	# Power punch a target for 200% ATK. If the target dies, their body flies through the rest
 	# of the team, dealing 50% less damage per target.
 	return {
-		"type": MoveType.AOE,
+		"type": MoveType.DAMAGE,
 		"val": atk * 2.0,
-		"targ": Positioning.ENEMY_FRONT,
+		"targ": Positioning.ENEMY_1,
+		"pos": Positioning.ALLY_FRONT,
+		"dmg_chg": 0.5,
+		"post_check": ["check_for_death", "body_aoe"],
+	}
+
+
+func check_for_death(hero):
+	return hero.curr_hp <= 0
+
+
+func body_aoe():
+	return {
+		"type": MoveType.AOE,
+		"val": atk * 1.0,
+		"targ": Positioning.ENEMY_BACK_3,
 		"pos": Positioning.ALLY_FRONT,
 		"dmg_chg": 0.5,
 	}

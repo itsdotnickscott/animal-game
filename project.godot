@@ -12,32 +12,32 @@ _global_script_classes=[ {
 "base": "Reference",
 "class": "AbilityType",
 "language": "GDScript",
-"path": "res://characters/constants/AbilityType.gd"
+"path": "res://characters/constants/ability_type.gd"
 }, {
 "base": "Node2D",
 "class": "Battle",
 "language": "GDScript",
-"path": "res://Battle.gd"
+"path": "res://battle.gd"
 }, {
-"base": "Area2D",
+"base": "Reference",
 "class": "Character",
 "language": "GDScript",
-"path": "res://characters/Character.gd"
+"path": "res://characters/character.gd"
 }, {
 "base": "Reference",
 "class": "MoveType",
 "language": "GDScript",
-"path": "res://characters/constants/MoveType.gd"
+"path": "res://characters/constants/move_type.gd"
 }, {
 "base": "Reference",
 "class": "Positioning",
 "language": "GDScript",
-"path": "res://characters/constants/Positioning.gd"
+"path": "res://characters/constants/positioning.gd"
 }, {
 "base": "Reference",
 "class": "StatusEffect",
 "language": "GDScript",
-"path": "res://characters/constants/StatusEffect.gd"
+"path": "res://characters/constants/status_effect.gd"
 } ]
 _global_script_class_icons={
 "AbilityType": "",
@@ -51,7 +51,7 @@ _global_script_class_icons={
 [application]
 
 config/name="animal-game"
-run/main_scene="res://Battle.tscn"
+run/main_scene="res://Home.tscn"
 config/icon="res://assets/icon.png"
 
 [display]

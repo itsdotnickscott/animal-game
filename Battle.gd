@@ -25,21 +25,17 @@ var disarm	# if current player is disarmed
 var queue	# if heroes have queued abilities
 
 
-func _ready():
-	# Group: "ally"
-	$Ally1.init("MagicTurt")
-	$Ally2.init("PowBun")
-	$Ally3.init("CowDog")
-	$Ally4.init("FireCat")
-
-	# Group: "enemy"
-	$Enemy1.init("SampleEnemy")
-	$Enemy2.init("SampleEnemy")
-	$Enemy3.init("SampleEnemy")
-	$Enemy4.init("SampleEnemy")
-
+func set_team(team):
 	ally_team = get_tree().get_nodes_in_group("ally")
 	enemy_team = get_tree().get_nodes_in_group("enemy")
+
+	var i = 0
+	for hero in ally_team:
+		hero.init(team[i])
+		i += 1
+
+	for hero in enemy_team:
+		hero.init("SampleEnemy")
 
 	# Done for positioning purposes
 	ally_team.invert()
@@ -86,6 +82,7 @@ func next_turn():
 	t_num += 1
 	target = null
 	ability = null
+	disarm = false
 	curr_turn = initiative[t_num].hero
 
 	if curr_turn == null:
@@ -97,7 +94,6 @@ func next_turn():
 
 func start_turn():
 	print("-------------------------")
-	disarm = false
 	set_info(curr_turn.name + "'s Turn")
 
 	# If character cannot act this turn
@@ -173,6 +169,15 @@ func interrupt_queued_ability(targ):
 func validate_move():
 	var move = get_chosen_ability()
 
+	# No ability pressed, just moving self
+	if move.type == MoveType.MOVE:
+		swap_pos(curr_turn, move.move_self)
+		printBattleMsg(curr_turn.name + " moved " + move.move_self as String + " spaces")
+
+		correct_positioning()
+		next_turn()
+		return
+
 	if !valid_pos(move) || !valid_target(move):
 		return
 
@@ -183,53 +188,6 @@ func validate_move():
 		return
 
 	execute_move(move)
-
-
-func execute_move(move):
-	# Handles repeated attacks
-	var num = 1 + (0 if !("repeat" in move) else move.repeat)
-	while(num > 0):
-		if ability_success(move):
-			if "random" in move:
-				random_target(move)
-			
-			match move.type:
-				MoveType.DAMAGE:
-					execute_damage(move)
-
-				MoveType.AOE:
-					execute_aoe(move)
-
-				MoveType.STATUS:
-					execute_status(move.apply)
-
-				MoveType.SHIELD:
-					execute_shield(move)
-
-				MoveType.HEAL:
-					execute_heal(move)
-
-				MoveType.AOE_HEAL:
-					execute_aoe_heal(move)
-
-			# Handle position-altering effects
-			if "move_targ" in move:
-				swap_pos(target, move.move_targ)
-				printBattleMsg(target.name + " moved " + move.move_targ as String + " spaces")
-
-			# If successive attacks get stronger/weaker
-			if "dmg_chg" in move:
-				move.val = move.val * move.dmg_chg
-
-		num -= 1
-
-	# Handle self position-altering effects
-	if "move_self" in move:
-		swap_pos(curr_turn, move.move_self)
-		printBattleMsg(curr_turn.name + " moved " + move.move_self as String + " spaces")
-
-	correct_positioning()
-	next_turn()
 
 
 func get_chosen_ability():
@@ -246,6 +204,68 @@ func get_chosen_ability():
 		AbilityType.ULT:
 			return curr_turn.ultimate()
 
+		AbilityType.M_L:
+			return {
+				"type": MoveType.MOVE,
+				"move_self": -1,
+			}
+
+		AbilityType.M_R:
+			return {
+				"type": MoveType.MOVE,
+				"move_self": 1,
+			}
+	
+
+func execute_move(move):
+	# Handles repeated attacks
+	var num = 1 + (0 if !("repeat" in move) else move.repeat)
+	while(num > 0):
+		# If targeting is random
+		if "random" in move:
+			random_target(move)
+		
+		# Call corresponding function based off of the move type
+		match move.type:
+			MoveType.DAMAGE:
+				execute_damage(move)
+
+			MoveType.AOE:
+				execute_aoe(move)
+
+			MoveType.STATUS:
+				execute_status(move.apply)
+
+			MoveType.SHIELD:
+				execute_shield(move)
+
+			MoveType.HEAL:
+				execute_heal(move)
+
+			MoveType.AOE_HEAL:
+				execute_aoe_heal(move)
+
+		# Handle position-altering effects
+		if "move_targ" in move:
+			swap_pos(target, move.move_targ)
+			printBattleMsg(target.name + " moved " + move.move_targ as String + " spaces")
+
+		# If successive attacks get stronger/weaker
+		if "dmg_chg" in move:
+			move.val = move.val * move.dmg_chg
+
+		num -= 1
+
+	# Handle self position-altering effects
+	if "move_self" in move:
+		swap_pos(curr_turn, move.move_self)
+		printBattleMsg(curr_turn.name + " moved " + move.move_self as String + " spaces")
+
+	func_check("post_check", move)
+
+	correct_positioning()
+	next_turn()
+
 
 func random_target(move):
 	while(true):
@@ -260,25 +280,26 @@ func random_target(move):
 
 
 func execute_damage(move, k_queue = false):
-	target.take_damage(move.val)
-	printBattleMsg(curr_turn.name + " dealt " + move.val as String + " damage to " + target.name)
+	if ability_success(move):
+		target.take_damage(move.val)
+		printBattleMsg(curr_turn.name + " dealt " + move.val as String + " damage to " + target.name)
 
-	# If target loses all HP
-	if target.curr_hp <= 0:
-		# If queue is activated, place target in kill queue, otherwise immediately kill
+		# If target loses all HP
+		if target.curr_hp <= 0:
+			# If kill queue is activated, place target in kill queue, otherwise immediately kill
+			if k_queue:
+				return true
+			else:
+				kill_hero(target)
+
+		# Apply debuff to target
+		if "apply" in move:
+			if move.apply != null:
+				execute_status(move.apply)
+
+		# If kill queue is activated, target is not dead so do not place in kill queue
 		if k_queue:
-			return true
-		else:
-			kill_hero(target)
-
-	# Apply debuff to target
-	if "apply" in move:
-		if move.apply != null:
-			execute_status(move.apply)
-
-	# If queue is activated, target is not dead so do not place in kill queue
-	if k_queue:
-		return false
+			return false
 
 
 func execute_aoe(move):
@@ -333,9 +354,8 @@ func execute_aoe_heal(move):
 
 
 func ability_success(move):
-	if "pre_check" in move:
-		if !curr_turn.call(move.pre_check, target):
-			return false
+	if !func_check("pre_check", move):
+		return false
 
 	# Roll for accuracy
 	var roll = rng.randf()
@@ -343,6 +363,31 @@ func ability_success(move):
 		printBattleMsg(curr_turn.name + " missed")
 		return false
 
+	return true
+
+
+func func_check(check, move):
+	# Verify there is a valid tag: "pre_check" or "post_check"
+	if check in move:
+		# Call boolean call to see if another move is performed
+		if curr_turn.call(move[check][0], target):
+			# If there are extra functions to be called
+			if move[check].size() > 1:
+				for i in range(1, move[check].size()):
+					# Grab move to execute
+					var call = curr_turn.call(move[check][i])
+
+					# Verify that this is a move Object, by checking if it has a "type" parameter
+					if "type" in call:
+						execute_move(call)
+
+			# Original action is performed (pre_check), or extra action was performed (post_check)
+			return true
+
+		# Action is not performed
+		return false
+
+	# There was never a check needed in the first place
 	return true
 
 

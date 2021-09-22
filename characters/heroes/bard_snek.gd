@@ -67,7 +67,7 @@ func apply_stun():
 
 func apply_disarm():
 	# Target cannot use the attack action for 1 turn.STATUS
-	return {
+	return ({
 		"status": StatusEffect.DISARM,
 		"turns": 1,
-	}
+	}).duplicate()

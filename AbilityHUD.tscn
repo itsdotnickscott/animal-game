@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://assets/fonts/m3x6.tres" type="DynamicFont" id=1]
-[ext_resource path="res://AbilityHUD.gd" type="Script" id=2]
+[ext_resource path="res://ability_hud.gd" type="Script" id=2]
 
 [node name="AbilityHUD" type="Control"]
 anchor_right = 1.0
@@ -12,9 +12,9 @@ __meta__ = {
 }
 
 [node name="Attack" type="Button" parent="."]
-margin_left = 58.0
+margin_left = 28.0
 margin_top = 149.0
-margin_right = 94.0
+margin_right = 64.0
 margin_bottom = 169.0
 rect_pivot_offset = Vector2( 65, 16 )
 custom_fonts/font = ExtResource( 1 )
@@ -24,9 +24,9 @@ __meta__ = {
 }
 
 [node name="Primary" type="Button" parent="."]
-margin_left = 102.0
+margin_left = 72.0
 margin_top = 149.0
-margin_right = 142.0
+margin_right = 112.0
 margin_bottom = 169.0
 rect_pivot_offset = Vector2( 65, 16 )
 custom_fonts/font = ExtResource( 1 )
@@ -36,28 +36,53 @@ __meta__ = {
 }
 
 [node name="Secondary" type="Button" parent="."]
-margin_left = 149.0
+margin_left = 119.0
 margin_top = 149.0
-margin_right = 197.0
+margin_right = 167.0
 margin_bottom = 169.0
 rect_pivot_offset = Vector2( 65, 16 )
 custom_fonts/font = ExtResource( 1 )
 text = "Secondary"
 
 [node name="Ultimate" type="Button" parent="."]
-margin_left = 205.0
+margin_left = 175.0
 margin_top = 149.0
-margin_right = 253.0
+margin_right = 223.0
 margin_bottom = 169.0
 rect_pivot_offset = Vector2( 65, 16 )
 custom_fonts/font = ExtResource( 1 )
 text = "Ultimate"
+
+[node name="Move_Left" type="Button" parent="."]
+margin_left = 230.0
+margin_top = 149.0
+margin_right = 255.0
+margin_bottom = 169.0
+rect_pivot_offset = Vector2( 65, 16 )
+custom_fonts/font = ExtResource( 1 )
+text = "<"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Move_Right" type="Button" parent="."]
+margin_left = 262.0
+margin_top = 149.0
+margin_right = 287.0
+margin_bottom = 169.0
+rect_pivot_offset = Vector2( 65, 16 )
+custom_fonts/font = ExtResource( 1 )
+text = ">"
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="GameInfo" type="Label" parent="."]
 margin_left = 120.0
 margin_top = 10.0
 margin_right = 174.0
 margin_bottom = 24.0
+rect_scale = Vector2( 1, 0.99882 )
 custom_fonts/font = ExtResource( 1 )
 text = "Choose target."
 align = 1
@@ -65,7 +90,9 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[connection signal="pressed" from="Attack" to="." method="_on_Attack_pressed"]
-[connection signal="pressed" from="Primary" to="." method="_on_Primary_pressed"]
-[connection signal="pressed" from="Secondary" to="." method="_on_Secondary_pressed"]
-[connection signal="pressed" from="Ultimate" to="." method="_on_Ultimate_pressed"]
+[connection signal="pressed" from="Attack" to="." method="_on_Ability_pressed" binds= [ 0 ]]
+[connection signal="pressed" from="Primary" to="." method="_on_Ability_pressed" binds= [ 1 ]]
+[connection signal="pressed" from="Secondary" to="." method="_on_Ability_pressed" binds= [ 2 ]]
+[connection signal="pressed" from="Ultimate" to="." method="_on_Ability_pressed" binds= [ 3 ]]
+[connection signal="pressed" from="Move_Left" to="." method="_on_Ability_pressed" binds= [ 4 ]]
+[connection signal="pressed" from="Move_Right" to="." method="_on_Ability_pressed" binds= [ 5 ]]

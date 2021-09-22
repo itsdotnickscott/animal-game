@@ -2,7 +2,7 @@
 
 [ext_resource path="res://assets/fonts/m3x6.tres" type="DynamicFont" id=1]
 [ext_resource path="res://assets/sample_character.png" type="Texture" id=2]
-[ext_resource path="res://characters/Character.gd" type="Script" id=3]
+[ext_resource path="res://characters/character.gd" type="Script" id=3]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 19, 32 )
