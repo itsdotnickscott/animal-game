@@ -17,7 +17,8 @@ func load_stats():
 	mag 	= 10
 	crit    = 0
 	acc     = 0.9
-	def     = 0
+	p_def   = 0.05
+	m_def	= 0.05
 	dodge   = 0
 	spd     = 0
 
@@ -38,6 +39,7 @@ func attack():
 
 	return {
 		"type": MoveType.DAMAGE,
+		"dmg_type": DamageType.PHY,
 		"val": val,
 		"targ": Positioning.ENEMY_FRONT,
 		"pos": Positioning.ALLY_FRONT,
@@ -51,6 +53,7 @@ func primary():
 
 	return {
 		"type": MoveType.DAMAGE,
+		"dmg_type": DamageType.MAG,
 		"val": mag * 1.2,
 		"targ": Positioning.ENEMY_BACK_3,
 		"pos": Positioning.ALLY_FRONT,
@@ -77,6 +80,7 @@ func ultimate():
 
 	return {
 		"type": MoveType.AOE,
+		"dmg_type": DamageType.MAG,
 		"val": mag * 1.75,
 		"targ": Positioning.ENEMY_FRONT,
 		"pos": Positioning.ALLY_FRONT,
@@ -88,7 +92,7 @@ func shell(enter):
 		return
 	
 	shell_mode = enter
-	def += 0.1 if enter else -0.1
+	p_def += 0.1 if enter else -0.1
 	print("[note] MagicTurt " + ("entered" if enter else "exited") + " his shell")
 
 

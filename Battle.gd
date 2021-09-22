@@ -6,40 +6,49 @@ class_name Battle
 var rng = RandomNumberGenerator.new()
 
 enum GameState {CHOOSE_ABILITY, CHOOSE_TARGET}
-const POS_COORDS = [19, 55, 91, 127, 193, 229, 265, 301]
+const POS_COORDS = [19, 55, 91, 127, 193, 229, 265, 301]	# x-coords of positions on the field
 
 var positioning
 var ally_team
 var enemy_team
+var initiative
 
+var curr_turn
 var game_state
 var target
 var ability
-var initiative
-var curr_turn
-
-var r_num	# round number
-var t_num	# turn number
 
 var disarm	# if current player is disarmed
 var queue	# if heroes have queued abilities
 
+var r_num	# round number
+var t_num	# turn number
 
-func set_team(team):
+
+func _ready():
 	ally_team = get_tree().get_nodes_in_group("ally")
 	enemy_team = get_tree().get_nodes_in_group("enemy")
 
+	# Initialize characters with team comps
 	var i = 0
 	for hero in ally_team:
-		hero.init(team[i])
+		hero.init(TeamComp.get_ally_team(i))
 		i += 1
 
+	i = 0
 	for hero in enemy_team:
-		hero.init("SampleEnemy")
+		if TeamComp.get_enemy_team().size() > i:
+			hero.init(TeamComp.get_enemy_team(i), true)
+
+		else:
+			enemy_team.erase(hero)
+			hero.queue_free()
+
+		i += 1
 
 	# Done for positioning purposes
 	ally_team.invert()
-	positioning = ally_team + enemy_team
+	correct_positioning()
 
 	disarm = false
 	queue = []
@@ -60,7 +69,8 @@ func roll_initiative():
 
 	# Roll initiatives for each hero
 	for hero in positioning:
-		initiative.append({"hero": hero, "roll": hero.spd + rng.randf_range(0, 8)})
+		if hero != null:
+			initiative.append({"hero": hero, "roll": hero.spd + rng.randf_range(0, 8)})
 
 	# Sort heroes in initiative order based off of roll
 	for _i in range(initiative.size() - 1):
@@ -113,11 +123,10 @@ func start_turn():
 
 	# If enemy's turn, attack random target
 	if curr_turn.is_in_group("enemy"):
-		var move = curr_turn.attack()
+		var move = curr_turn.choose_ability()
 
 		random_target(move)
-		execute_damage(move)
-		next_turn()
+		execute_move(move)
 
 
 func resolve_status_effects():
@@ -171,10 +180,7 @@ func validate_move():
 
 	# No ability pressed, just moving self
 	if move.type == MoveType.MOVE:
-		swap_pos(curr_turn, move.move_self)
-		printBattleMsg(curr_turn.name + " moved " + move.move_self as String + " spaces")
-
-		correct_positioning()
+		execute_move_pos(curr_turn, move.move_self)
 		next_turn()
 		return
 
@@ -247,9 +253,8 @@ func execute_move(move):
 
 		# Handle position-altering effects
 		if "move_targ" in move:
-			swap_pos(target, move.move_targ)
-			printBattleMsg(target.name + " moved " + move.move_targ as String + " spaces")
-
+			execute_move_pos(target, move.move_targ)
+			
 		# If successive attacks get stronger/weaker
 		if "dmg_chg" in move:
 			move.val = move.val * move.dmg_chg
@@ -258,8 +263,7 @@ func execute_move(move):
 
 	# Handle self position-altering effects
 	if "move_self" in move:
-		swap_pos(curr_turn, move.move_self)
-		printBattleMsg(curr_turn.name + " moved " + move.move_self as String + " spaces")
+		execute_move_pos(curr_turn, move.move_self)
 
 	func_check("post_check", move)
 
@@ -279,10 +283,25 @@ func random_target(move):
 		break
 
 
-func execute_damage(move, k_queue = false):
+func execute_damage(move, k_queue=false):
 	if ability_success(move):
-		target.take_damage(move.val)
-		printBattleMsg(curr_turn.name + " dealt " + move.val as String + " damage to " + target.name)
+		# If target dodges attack
+		if rng.randf() <= target.dodge:
+			printBattleMsg(target.name + " dodged")
+			if k_queue:
+				return false
+			else:
+				return
+
+		# Damage value doubled if critical
+		var dmg = move.val * (2 if rng.randf(curr_turn.crit) else 1)
+		printBattleMsg("CRITICAL!")
+
+		# Damage value reduced by target's defense
+		dmg = move.val - move.val * (target.p_def if move.dmg_type == DamageType.PHY else target.m_def)
+
+		target.take_damage(dmg)
+		printBattleMsg(curr_turn.name + " dealt " + dmg as String + " damage to " + target.name)
 
 		# If target loses all HP
 		if target.curr_hp <= 0:
@@ -305,16 +324,18 @@ func execute_damage(move, k_queue = false):
 func execute_aoe(move):
 	var kill_queue = []
 
-	for hero in move.targ:
-		if positioning[hero] != null:
-			target = positioning[hero]
+	var i = 0
+	for pos in move.targ:
+		if i < (enemy_team.size() if target.is_in_group("enemy") else ally_team.size()):
+			if positioning[pos] != null:
+				target = positioning[pos]
 
-			if execute_damage(move, true):
-				kill_queue.append(target)
+				if execute_damage(move, true):
+					kill_queue.append(target)
 
-			# If successive attacks get stronger/weaker
-			if "dmg_chg" in move:
-				move.val = move.val * move.dmg_chg
+				# If successive attacks get stronger/weaker
+				if "dmg_chg" in move:
+					move.val = move.val * move.dmg_chg
 
 	for dead in kill_queue:
 		kill_hero(dead)
@@ -347,10 +368,22 @@ func execute_heal(move):
 
 
 func execute_aoe_heal(move):
+	var i = 0
 	for hero in move.targ:
-		if positioning[hero] != null:
-			target = positioning[hero]
-			execute_heal(move)
+		if i < (enemy_team.size() if target.is_in_group("enemy") else ally_team.size()):
+			if positioning[hero] != null:
+				target = positioning[hero]
+				execute_heal(move)
+
+		i += 1
+
+
+func execute_move_pos(targ, num):
+	for _i in range(abs(num)):
+		swap_pos(targ, num > 0)
+
+	printBattleMsg(targ.name + " moved " + num as String + " spaces")
+	correct_positioning()
 
 
 func ability_success(move):
@@ -358,8 +391,7 @@ func ability_success(move):
 		return false
 
 	# Roll for accuracy
-	var roll = rng.randf()
-	if roll > curr_turn.acc:
+	if rng.randf() > curr_turn.acc:
 		printBattleMsg(curr_turn.name + " missed")
 		return false
 
@@ -418,36 +450,23 @@ func valid_pos(move):
 	return false
 
 
-func swap_pos(hero, num):
-	# No more swaps
-	if num == 0:
-		return
-
+func swap_pos(hero, forward=true):
 	var targ_team = ally_team if hero.is_in_group("ally") else enemy_team
 	var idx = targ_team.find(hero)
-	var move_num = check_pos_boundaries(idx, num, targ_team)
+	var move_num = check_pos_boundaries(idx, forward, targ_team)
 		
 	# Swap positions
 	targ_team[idx] = targ_team[idx + move_num]
 	targ_team[idx + move_num] = hero
 
-	# Run recursively
-	swap_pos(hero, num - move_num)
 
-
-func check_pos_boundaries(idx, num, targ_team):
+func check_pos_boundaries(idx, forward, targ_team):
 	# Check boundaries
-	if num > 0:
-		if idx + 1 >= targ_team.size():
-			return 0
-
-		return 1
+	if forward:
+		return 0 if idx + 1 >= targ_team.size() else 1
 
 	else:
-		if idx - 1 < 0:
-			return 0
-
-		return -1
+		return 0 if idx - 1 < 0 else -1
 
 
 func kill_hero(hero):
@@ -465,12 +484,16 @@ func kill_hero(hero):
 
 	
 func correct_positioning():
+	positioning = [null, null, null, null, null, null, null, null]
+
 	var size = ally_team.size()
+	# Fill ally spots in order from right -> left
 	for hero in ally_team:
 		hero.position.x = POS_COORDS[4 - size]
 		positioning[4 - size] = hero
 		size -= 1
 
+	# Fill enemy spots in order from left -> right
 	for hero in enemy_team:
 		hero.position.x = POS_COORDS[4 + size]
 		positioning[4 + size] = hero

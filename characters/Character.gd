@@ -11,7 +11,8 @@ var atk     # boosts damage from attacks
 var mag     # boosts scaling for spells
 var crit    # chance to deal extra dmg
 var acc     # chance to land an attack
-var def     # resist dmg from attacks
+var p_def   # resist dmg from physical damage
+var m_def	# resist dmg from magic damage
 var dodge   # avoid attack
 var spd     # determines initiative in battle
 
@@ -20,8 +21,8 @@ var status  # current buffs/debuffs
 var shield  # current shield value
 
 
-func init(name):
-	set_script(load("res://characters/heroes/" + name + ".gd"))
+func init(name, enemy=false):
+	set_script(load("res://characters/" + ("enemies" if enemy else "heroes") + "/" + name + ".gd"))
 	load_stats()
 
 	curr_hp = max_hp

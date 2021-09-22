@@ -8,7 +8,8 @@ func load_stats():
 	mag		= 0
 	crit    = 0
 	acc     = 0.9
-	def     = 0
+	p_def   = 0
+	m_def	= 0
 	dodge   = 0
 	spd     = 0
 
@@ -17,6 +18,7 @@ func attack():
 	# Attack one target for 100% ATK
 	return {
 		"type": MoveType.DAMAGE,
+		"dmg_type": DamageType.PHY,
 		"val": atk * 1.0,
 		"targ": Positioning.ALLY_ALL,
 		"pos": Positioning.ENEMY_ALL,
@@ -27,6 +29,7 @@ func primary():
 	# Attack one target for 100% ATK
 	return {
 		"type": MoveType.DAMAGE,
+		"dmg_type": DamageType.PHY,
 		"val": atk * 1.0,
 		"targ": Positioning.ALLY_ALL,
 		"pos": Positioning.ENEMY_ALL,
@@ -37,6 +40,7 @@ func secondary():
 	# Attack one target for 100% ATK
 	return {
 		"type": MoveType.DAMAGE,
+		"dmg_type": DamageType.PHY,
 		"val": atk * 1.0,
 		"targ": Positioning.ALLY_ALL,
 		"pos": Positioning.ENEMY_ALL,
@@ -47,6 +51,7 @@ func ultimate():
 	# Attack one target for 100% ATK
 	return {
 		"type": MoveType.DAMAGE,
+		"dmg_type": DamageType.PHY,
 		"val": atk * 1.0,
 		"targ": Positioning.ALLY_ALL,
 		"pos": Positioning.ENEMY_ALL,

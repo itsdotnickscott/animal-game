@@ -19,10 +19,15 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://battle.gd"
 }, {
-"base": "Reference",
+"base": "Area2D",
 "class": "Character",
 "language": "GDScript",
 "path": "res://characters/character.gd"
+}, {
+"base": "Reference",
+"class": "DamageType",
+"language": "GDScript",
+"path": "res://characters/constants/damage_type.gd"
 }, {
 "base": "Reference",
 "class": "MoveType",
@@ -43,6 +48,7 @@ _global_script_class_icons={
 "AbilityType": "",
 "Battle": "",
 "Character": "",
+"DamageType": "",
 "MoveType": "",
 "Positioning": "",
 "StatusEffect": ""
@@ -53,6 +59,10 @@ _global_script_class_icons={
 config/name="animal-game"
 run/main_scene="res://Home.tscn"
 config/icon="res://assets/icon.png"
+
+[autoload]
+
+TeamComp="*res://team_comp.gd"
 
 [display]
 

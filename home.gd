@@ -27,7 +27,7 @@ func update_pictures():
 
 
 func _on_StartBattle_pressed():
-	var _unused = get_tree().change_scene("res://Battle.tscn")
+	TeamComp.change_scene("res://Battle.tscn", team_comp)
 
 
 func _on_OptionButton_item_selected(select, idx):

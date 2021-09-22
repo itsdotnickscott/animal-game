@@ -10,7 +10,8 @@ func load_stats():
 	mag 	= 4
 	crit    = 0
 	acc     = 0.85
-	def     = 0
+	p_def   = 0
+	m_def	= 0
 	dodge   = 0
 	spd     = 5
 
@@ -19,6 +20,7 @@ func attack():
 	# Shoot CowDog's gun at one target for 120% ATK.
 	return {
 		"type": MoveType.DAMAGE,
+		"dmg_type": DamageType.PHY,
 		"val": atk * 1.2,
 		"targ": Positioning.ENEMY_ALL,
 		"pos": Positioning.ALLY_BACK_3,
@@ -29,6 +31,7 @@ func primary():
 	# Roll forward 1 space and throw a stun grenade for 75% MAG.
 	return {
 		"type": MoveType.DAMAGE,
+		"dmg_type": DamageType.MAG,
 		"val": mag * 0.75,
 		"targ": Positioning.ENEMY_FRONT,
 		"pos": Positioning.ALLY_BACK_3,
@@ -42,6 +45,7 @@ func secondary():
 	# CowDog back 2 spaces.
 	return {
 		"type": MoveType.AOE, 
+		"dmg_type": DamageType.PHY,
 		"val": atk * 0.80,
 		"targ": Positioning.ENEMY_FRONT,
 		"pos": Positioning.ALLY_FRONT,
@@ -54,6 +58,7 @@ func ultimate():
 	# Fire your weapon randomly six times, dealing 50% ATK per bullet.
 	return {
 		"type": MoveType.DAMAGE,
+		"dmg_type": DamageType.PHY,
 		"val": atk * 0.5,
 		"targ": Positioning.ENEMY_ALL,
 		"pos": Positioning.ALLY_BACK_3,

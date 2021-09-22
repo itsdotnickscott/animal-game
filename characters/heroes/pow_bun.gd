@@ -6,12 +6,13 @@ func load_stats():
 
 	$Sprite.texture = preload("res://assets/pow_bun.png")
 	max_hp  = 22
-	atk     = 10
+	atk     = 8
 	mag		= 3
 	crit    = 0
 	acc     = 0.9
-	def     = 0
-	dodge   = 0
+	p_def   = 0
+	m_def	= 0
+	dodge   = 0.05
 	spd     = 8
 
 
@@ -19,6 +20,7 @@ func attack():
 	# Punch a target twice, the first dealing 60% ATK, and the second dealing 90% ATK.
 	return {
 		"type": MoveType.DAMAGE,
+		"dmg_type": DamageType.PHY,
 		"val": atk * 0.6,
 		"targ": Positioning.ENEMY_FRONT,
 		"pos": Positioning.ALLY_FRONT,
@@ -34,6 +36,7 @@ func primary():
 
 	return {
 		"type": MoveType.DAMAGE,
+		"dmg_type": DamageType.PHY,
 		"val": atk * 1.5,
 		"targ": Positioning.ENEMY_1,
 		"pos": Positioning.ALLY_FRONT,
@@ -59,6 +62,7 @@ func ultimate():
 	# of the team, dealing 50% less damage per target.
 	return {
 		"type": MoveType.DAMAGE,
+		"dmg_type": DamageType.PHY,
 		"val": atk * 2.0,
 		"targ": Positioning.ENEMY_1,
 		"pos": Positioning.ALLY_FRONT,
@@ -82,6 +86,7 @@ func body_aoe():
 
 
 func apply_focus():
+	print("[note] PowBun has increased crit!")
 	return {
 		"crit": 0.1,
 		"turns": 3,

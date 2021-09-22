@@ -10,10 +10,11 @@ func load_stats():
 	$Sprite.texture = preload("res://assets/fire_cat.png")
 	max_hp  = 20
 	atk     = 8
-	mag 	= 4
+	mag 	= 8
 	crit    = 0
 	acc     = 0.95
-	def     = 0
+	p_def   = 0
+	m_def	= 0
 	dodge   = 0
 	spd     = 6
 
@@ -24,6 +25,7 @@ func attack():
 	# Shoot an arrow at one target for 110% ATK.
 	return {
 		"type": MoveType.DAMAGE,
+		"dmg_type": DamageType.PHY,
 		"val": atk * 1.1,
 		"targ": Positioning.ENEMY_ALL,
 		"pos": Positioning.ALLY_BACK,
@@ -36,6 +38,7 @@ func primary():
 	# for every other enemy.
 	return {
 		"type": MoveType.AOE,
+		"dmg_type": DamageType.PHY,
 		"val": atk * 0.5,
 		"targ": Positioning.ENEMY_ALL,
 		"pos": Positioning.ALLY_BACK,
@@ -56,10 +59,11 @@ func secondary():
 
 	
 func ultimate():
-	# All enemies with a BURN debuff gets attacked for 150% ATK.
+	# All enemies with a BURN debuff gets attacked for 120% MAG.
 	return {
 		"type": MoveType.AOE,
-		"val": atk * 1.5,
+		"dmg_type": DamageType.MAG,
+		"val": mag * 1.2,
 		"pre_check": ["check_for_burn"],
 		"targ": Positioning.ENEMY_ALL,
 		"pos": Positioning.ALLY_BACK,
@@ -98,7 +102,7 @@ func check_for_burn(hero):
 func apply_status(effect):
 	if "on_fire" in effect:
 		on_fire = effect.on_fire
-		print("[note] CatArcher is on fire")
+		print("[note] CatArcher is on fire!")
 
 	.apply_status(effect)
 
