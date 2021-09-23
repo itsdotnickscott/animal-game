@@ -8,12 +8,14 @@ func load_stats():
 	max_hp  = 16
 	atk     = 9
 	mag 	= 4
-	crit    = 0
+	crit    = 0.05
 	acc     = 0.85
 	p_def   = 0
 	m_def	= 0
 	dodge   = 0
 	spd     = 5
+
+	.load_stats()
 
 
 func attack():

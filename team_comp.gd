@@ -1,8 +1,8 @@
 extends Node
 
 
-var ally_team = []
-var enemy_team = []
+var ally_team
+var enemy_team
 
 
 func change_scene(next_scene, team=null):
@@ -12,6 +12,8 @@ func change_scene(next_scene, team=null):
 
 
 func generate_enemy_comp():
+	enemy_team = []
+	
 	var rng = RandomNumberGenerator.new()
 	rng.randomize()
 

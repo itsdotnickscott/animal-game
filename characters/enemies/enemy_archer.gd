@@ -6,12 +6,14 @@ func load_stats():
 	max_hp  = 16
 	atk     = 6
 	mag		= 0
-	crit    = 0
+	crit    = 0.05
 	acc     = 0.9
 	p_def   = 0
 	m_def	= 0
 	dodge   = 0
-	spd     = 4
+	spd     = 5
+
+	.load_stats()
 
 
 func choose_ability():

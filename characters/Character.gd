@@ -6,6 +6,12 @@ extends Area2D
 signal selected(node)
 
 
+# Health bar resources
+var bar_red = preload("res://assets/red_health_bar.png")
+var bar_green = preload("res://assets/green_health_bar.png")
+var bar_yellow = preload("res://assets/yellow_health_bar.png")
+
+
 var max_hp  # hit points
 var atk     # boosts damage from attacks
 var mag     # boosts scaling for spells
@@ -24,16 +30,15 @@ var shield  # current shield value
 func init(name, enemy=false):
 	set_script(load("res://characters/" + ("enemies" if enemy else "heroes") + "/" + name + ".gd"))
 	load_stats()
-
-	curr_hp = max_hp
-	status = []
-	shield = 0
-
 	update_labels()
 
 
 func load_stats():
-	pass
+	curr_hp = max_hp
+	status = []
+	shield = 0
+
+	$HPBar.max_value = max_hp
 
 
 func _on_Character_input_event(_viewport, event, _shape_idx):
@@ -69,6 +74,20 @@ func gain_shield(val):
 func update_labels():
 	var hp = curr_hp as int
 	$HPLabel.text = hp as String + "HP"
+	update_hp_bar()
+
+
+func update_hp_bar():
+	if curr_hp < max_hp * 0.3:
+		$HPBar.texture_progress = bar_red
+
+	elif curr_hp < max_hp * 0.7:
+		$HPBar.texture_progress = bar_yellow
+
+	else:
+		$HPBar.texture_progress = bar_green
+
+	$HPBar.value = curr_hp
 
 
 func apply_status(effect):
@@ -76,6 +95,8 @@ func apply_status(effect):
 
 	if "dodge" in effect:
 		dodge += effect.dodge
+	if "crit" in effect:
+		crit += effect.crit
 
 
 func clear_status(effect):
@@ -83,6 +104,8 @@ func clear_status(effect):
 
 	if "dodge" in effect:
 		dodge -= effect.dodge
+	if "crit" in effect:
+		crit -= effect.crit
 
 
 func _to_string():

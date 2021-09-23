@@ -13,6 +13,8 @@ func load_stats():
 	dodge   = 0
 	spd     = 0
 
+	.load_stats()
+
 
 func attack():
 	# Attack one target for 100% ATK

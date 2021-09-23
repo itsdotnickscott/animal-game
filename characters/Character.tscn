@@ -1,8 +1,10 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://assets/fonts/m3x6.tres" type="DynamicFont" id=1]
 [ext_resource path="res://assets/sample_character.png" type="Texture" id=2]
 [ext_resource path="res://characters/character.gd" type="Script" id=3]
+[ext_resource path="res://assets/green_health_bar.png" type="Texture" id=4]
+[ext_resource path="res://assets/gray_health_bar.png" type="Texture" id=5]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 19, 32 )
@@ -19,12 +21,24 @@ shape = SubResource( 1 )
 
 [node name="HPLabel" type="Label" parent="."]
 margin_left = -20.3581
-margin_top = -46.355
+margin_top = -52.355
 margin_right = 19.6419
-margin_bottom = -32.355
+margin_bottom = -38.355
 custom_fonts/font = ExtResource( 1 )
 text = "9999HP"
 align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HPBar" type="TextureProgress" parent="."]
+margin_left = -16.0
+margin_top = -40.0
+margin_right = 16.0
+margin_bottom = -34.0
+value = 100.0
+texture_under = ExtResource( 5 )
+texture_progress = ExtResource( 4 )
 __meta__ = {
 "_edit_use_anchors_": false
 }

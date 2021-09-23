@@ -7,6 +7,7 @@ var rng = RandomNumberGenerator.new()
 
 enum GameState {CHOOSE_ABILITY, CHOOSE_TARGET}
 const POS_COORDS = [19, 55, 91, 127, 193, 229, 265, 301]	# x-coords of positions on the field
+var Character = preload("res://characters/Character.tscn")
 
 var positioning
 var ally_team
@@ -23,6 +24,7 @@ var queue	# if heroes have queued abilities
 
 var r_num	# round number
 var t_num	# turn number
+var w_num	# wave number
 
 
 func _ready():
@@ -54,6 +56,7 @@ func _ready():
 	queue = []
 
 	r_num = -1
+	w_num = 0
 	rng.randomize()
 	round_start()
 
@@ -267,6 +270,10 @@ func execute_move(move):
 
 	func_check("post_check", move)
 
+	if check_for_next_wave():
+		round_start()
+
+	check_lose_condition()
 	correct_positioning()
 	next_turn()
 
@@ -294,11 +301,13 @@ func execute_damage(move, k_queue=false):
 				return
 
 		# Damage value doubled if critical
-		var dmg = move.val * (2 if rng.randf(curr_turn.crit) else 1)
-		printBattleMsg("CRITICAL!")
+		var dmg = move.val
+		if rng.randf() <= curr_turn.crit:
+			dmg *= 2
+			printBattleMsg("CRITICAL!")
 
 		# Damage value reduced by target's defense
-		dmg = move.val - move.val * (target.p_def if move.dmg_type == DamageType.PHY else target.m_def)
+		dmg -= move.val * (target.p_def if move.dmg_type == DamageType.PHY else target.m_def)
 
 		target.take_damage(dmg)
 		printBattleMsg(curr_turn.name + " dealt " + dmg as String + " damage to " + target.name)
@@ -401,7 +410,7 @@ func ability_success(move):
 func func_check(check, move):
 	# Verify there is a valid tag: "pre_check" or "post_check"
 	if check in move:
-		# Call boolean call to see if another move is performed
+		# Call boolean call to see if move is performed
 		if curr_turn.call(move[check][0], target):
 			# If there are extra functions to be called
 			if move[check].size() > 1:
@@ -500,8 +509,34 @@ func correct_positioning():
 		size += 1
 
 
+func check_lose_condition():
+	if ally_team.size() == 0:
+		$AbilityHUD/LosePopup.popup()
+
+
+func check_for_next_wave():
+	if enemy_team.size() == 0:
+		TeamComp.generate_enemy_comp()
+		var team_comp = TeamComp.enemy_team
+		w_num += 1
+
+		for i in range(team_comp.size()):
+			var character = Character.instance()
+			character.position = Vector2(POS_COORDS[4 + i], 97)
+			add_child(character)
+
+			character.init(team_comp[i], true)
+			character.add_to_group("enemy")
+			enemy_team.append(character)
+
+			character.connect("selected", self, "_on_Character_selected")
+
+		correct_positioning()
+
+
 func set_info(msg):
-	$AbilityHUD.get_node("GameInfo").text = msg
+	$AbilityHUD/GameInfo.text = msg
+	$AbilityHUD/WaveLabel.text = "Wave " + (w_num + 1) as String
 
 
 func _on_AbilityHUD_ability(abil):

@@ -11,7 +11,7 @@ func load_stats():
 	max_hp  = 20
 	atk     = 8
 	mag 	= 8
-	crit    = 0
+	crit    = 0.05
 	acc     = 0.95
 	p_def   = 0
 	m_def	= 0
@@ -19,6 +19,8 @@ func load_stats():
 	spd     = 6
 
 	on_fire = false
+
+	.load_stats()
 
 
 func attack():
@@ -34,15 +36,15 @@ func attack():
 
 
 func primary():
-	# Shoot a piercing arrow, dealing 50% ATK to the first enemy and losing 50% DMG
+	# Shoot a piercing arrow, dealing 75% ATK to the first enemy and losing 25% DMG
 	# for every other enemy.
 	return {
 		"type": MoveType.AOE,
 		"dmg_type": DamageType.PHY,
-		"val": atk * 0.5,
+		"val": atk * 0.75,
 		"targ": Positioning.ENEMY_ALL,
 		"pos": Positioning.ALLY_BACK,
-		"dmg_chg": 0.5,
+		"dmg_chg": 0.75,
 		"apply": apply_burn(),
 	}
 

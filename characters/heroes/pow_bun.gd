@@ -8,12 +8,14 @@ func load_stats():
 	max_hp  = 22
 	atk     = 8
 	mag		= 3
-	crit    = 0
+	crit    = 0.05
 	acc     = 0.9
 	p_def   = 0
 	m_def	= 0
 	dodge   = 0.05
 	spd     = 8
+
+	.load_stats()
 
 
 func attack():
@@ -78,6 +80,7 @@ func check_for_death(hero):
 func body_aoe():
 	return {
 		"type": MoveType.AOE,
+		"dmg_type": DamageType.PHY,
 		"val": atk * 1.0,
 		"targ": Positioning.ENEMY_BACK_3,
 		"pos": Positioning.ALLY_FRONT,

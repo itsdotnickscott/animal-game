@@ -77,15 +77,39 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="WaveLabel" type="Label" parent="."]
+margin_left = 265.0
+margin_top = 1.0
+margin_right = 320.0
+margin_bottom = 15.0
+rect_scale = Vector2( 1, 0.99882 )
+custom_fonts/font = ExtResource( 1 )
+text = "Wave 1"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="GameInfo" type="Label" parent="."]
-margin_left = 120.0
-margin_top = 10.0
-margin_right = 174.0
-margin_bottom = 24.0
+margin_left = 133.0
+margin_top = 12.0
+margin_right = 188.0
+margin_bottom = 26.0
 rect_scale = Vector2( 1, 0.99882 )
 custom_fonts/font = ExtResource( 1 )
 text = "Choose target."
 align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LosePopup" type="AcceptDialog" parent="."]
+margin_left = 100.0
+margin_top = 70.0
+margin_right = 221.0
+margin_bottom = 128.0
+window_title = "Game Over"
+dialog_text = "You lost!"
 __meta__ = {
 "_edit_use_anchors_": false
 }

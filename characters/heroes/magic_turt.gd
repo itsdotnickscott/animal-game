@@ -15,15 +15,17 @@ func load_stats():
 	max_hp  = 30
 	atk     = 6
 	mag 	= 10
-	crit    = 0
+	crit    = 0.05
 	acc     = 0.9
-	p_def   = 0.05
-	m_def	= 0.05
+	p_def   = 0.1
+	m_def	= 0.1
 	dodge   = 0
 	spd     = 0
 
 	shell_mode = false
 	flame = 5
+
+	.load_stats()
 
 
 func attack():
@@ -74,14 +76,14 @@ func secondary():
 
 	
 func ultimate():
-	# Engulf the front line with a flame dealing 175% MAG. Flame Cost: 3
+	# Engulf the front line with a flame dealing 125% MAG. Flame Cost: 3
 	flame -= 3
 	check_flame()
 
 	return {
 		"type": MoveType.AOE,
 		"dmg_type": DamageType.MAG,
-		"val": mag * 1.75,
+		"val": mag * 1.25,
 		"targ": Positioning.ENEMY_FRONT,
 		"pos": Positioning.ALLY_FRONT,
 	}
