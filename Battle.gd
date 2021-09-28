@@ -9,6 +9,11 @@ enum GameState {CHOOSE_ABILITY, CHOOSE_TARGET}
 const POS_COORDS = [19, 55, 91, 127, 193, 229, 265, 301]	# x-coords of positions on the field
 var Character = preload("res://characters/Character.tscn")
 
+# Pip costs
+const ONE_PIP = 1
+const ULT_PIP = 3
+
+# Battle game state
 var positioning
 var ally_team
 var enemy_team
@@ -19,8 +24,13 @@ var game_state
 var target
 var ability
 
-var disarm	# if current player is disarmed
-var queue	# if heroes have queued abilities
+
+# Current character's state
+var disarm		# if current player is disarmed
+var queue		# if heroes have queued abilities
+var is_crit 	# if current move crit
+var pip_cost	# pip cost of ability being used
+var success		# if ability hits (except dodge)
 
 var r_num	# round number
 var t_num	# turn number
@@ -50,10 +60,12 @@ func _ready():
 
 	# Done for positioning purposes
 	ally_team.invert()
+
 	correct_positioning()
 
 	disarm = false
 	queue = []
+	is_crit = false
 
 	r_num = -1
 	w_num = 0
@@ -63,6 +75,12 @@ func _ready():
 
 func round_start():
 	r_num += 1
+
+	# Give every player a pip
+	for hero in positioning:
+		if hero != null:
+			hero.give_pip()
+
 	roll_initiative()
 	next_turn()
 
@@ -87,6 +105,9 @@ func roll_initiative():
 
 
 func next_turn():
+	if curr_turn:
+		curr_turn.set_turn_indicator(false)
+
 	# Start a new round if all heroes have taken a turn
 	if t_num == initiative.size() - 1:
 		round_start()
@@ -96,6 +117,9 @@ func next_turn():
 	target = null
 	ability = null
 	disarm = false
+	is_crit = false
+	pip_cost = 0
+	success = false
 	curr_turn = initiative[t_num].hero
 
 	if curr_turn == null:
@@ -108,6 +132,7 @@ func next_turn():
 func start_turn():
 	print("-------------------------")
 	set_info(curr_turn.name + "'s Turn")
+	curr_turn.set_turn_indicator(true)
 
 	# If character cannot act this turn
 	if resolve_status_effects():
@@ -142,13 +167,13 @@ func resolve_status_effects():
 			if "status" in effect:
 				match effect.status:
 					StatusEffect.BURN:
-						printBattleMsg(curr_turn.name + " is no longer burned")
+						print_battle_msg(curr_turn.name + " is no longer burned")
 		
 					StatusEffect.STUN:
-						printBattleMsg(curr_turn.name + " is no longer stunned")
+						print_battle_msg(curr_turn.name + " is no longer stunned")
 		
 					StatusEffect.DISARM:
-						printBattleMsg(curr_turn.name + " is no longer disarmed")
+						print_battle_msg(curr_turn.name + " is no longer disarmed")
 
 			continue
 
@@ -157,14 +182,14 @@ func resolve_status_effects():
 			match effect.status:
 				StatusEffect.BURN:
 					curr_turn.curr_hp -= effect.val
-					printBattleMsg(curr_turn.name + " was burned for " + effect.val as String + " damage")
+					print_battle_msg(curr_turn.name + " was burned for " + effect.val as String + " damage")
 
 				StatusEffect.STUN:
-					printBattleMsg(curr_turn.name + " is stunned, their turn is skipped")
+					print_battle_msg(curr_turn.name + " is stunned, their turn is skipped")
 					skip_turn = true
 
 				StatusEffect.DISARM:
-					printBattleMsg(curr_turn.name + " is disarmed, they cannot attack")
+					print_battle_msg(curr_turn.name + " is disarmed, they cannot attack")
 					disarm = true
 
 		effect.turns -= 1
@@ -180,6 +205,9 @@ func interrupt_queued_ability(targ):
 
 func validate_move():
 	var move = get_chosen_ability()
+
+	if move == null:
+		return
 
 	# No ability pressed, just moving self
 	if move.type == MoveType.MOVE:
@@ -200,18 +228,26 @@ func validate_move():
 
 
 func get_chosen_ability():
+	pip_cost = 0
+
 	match ability:
 		AbilityType.ATK:
 			return curr_turn.attack()
 			
 		AbilityType.PRI:
-			return curr_turn.primary()
+			if curr_turn.pips - ONE_PIP >= 0:
+				pip_cost = ONE_PIP
+				return curr_turn.primary()
 
 		AbilityType.SEC:
-			return curr_turn.secondary()
+			if curr_turn.pips - ONE_PIP >= 0:
+				pip_cost = ONE_PIP
+				return curr_turn.secondary()
 
 		AbilityType.ULT:
-			return curr_turn.ultimate()
+			if curr_turn.pips - ULT_PIP >= 0:
+				pip_cost = ULT_PIP
+				return curr_turn.ultimate()
 
 		AbilityType.M_L:
 			return {
@@ -224,9 +260,17 @@ func get_chosen_ability():
 				"type": MoveType.MOVE,
 				"move_self": 1,
 			}
+
+	print("[note] You don't have enough pips to use this ability")
+	return null
 	
 
 func execute_move(move):
+	if move == null:
+		return
+
+	success = false
+
 	# Handles repeated attacks
 	var num = 1 + (0 if !("repeat" in move) else move.repeat)
 	while(num > 0):
@@ -270,8 +314,12 @@ func execute_move(move):
 
 	func_check("post_check", move)
 
+	if success && pip_cost > 0:
+		curr_turn.use_pips(pip_cost)
+
 	if check_for_next_wave():
 		round_start()
+		return
 
 	check_lose_condition()
 	correct_positioning()
@@ -292,25 +340,9 @@ func random_target(move):
 
 func execute_damage(move, k_queue=false):
 	if ability_success(move):
-		# If target dodges attack
-		if rng.randf() <= target.dodge:
-			printBattleMsg(target.name + " dodged")
-			if k_queue:
-				return false
-			else:
-				return
-
-		# Damage value doubled if critical
-		var dmg = move.val
-		if rng.randf() <= curr_turn.crit:
-			dmg *= 2
-			printBattleMsg("CRITICAL!")
-
-		# Damage value reduced by target's defense
-		dmg -= move.val * (target.p_def if move.dmg_type == DamageType.PHY else target.m_def)
-
-		target.take_damage(dmg)
-		printBattleMsg(curr_turn.name + " dealt " + dmg as String + " damage to " + target.name)
+		var dmg = calculate_damage(move)
+		target.take_damage(dmg, is_crit)
+		print_battle_msg(curr_turn.name + " dealt " + dmg as String + " damage to " + target.name)
 
 		# If target loses all HP
 		if target.curr_hp <= 0:
@@ -325,9 +357,26 @@ func execute_damage(move, k_queue=false):
 			if move.apply != null:
 				execute_status(move.apply)
 
-		# If kill queue is activated, target is not dead so do not place in kill queue
-		if k_queue:
-			return false
+	# If kill queue is activated, target is not dead so do not place in kill queue
+	if k_queue:
+		return false
+
+
+func calculate_damage(move):
+	var dmg = move.val
+	# Damage value is variable, dealing 85-100% orig dmg value
+	dmg *= rng.randf_range(0.85, 1)
+
+	# Damage value doubled if critical
+	if rng.randf() <= curr_turn.crit:
+		dmg *= 2
+		is_crit = true
+		print_battle_msg("CRITICAL!")
+
+	# Damage value reduced by target's defense
+	dmg -= dmg * (target.p_def if move.dmg_type == DamageType.PHY else target.m_def)
+
+	return round(dmg)
 
 
 func execute_aoe(move):
@@ -356,24 +405,24 @@ func execute_status(effect):
 	if "status" in effect:
 		match effect.status:
 			StatusEffect.BURN:
-				printBattleMsg(target.name + " was burned by " + curr_turn.name + " for " + effect.turns as String + " turns")
+				print_battle_msg(target.name + " was burned by " + curr_turn.name + " for " + effect.turns as String + " turns")
 
 			StatusEffect.STUN:
 				interrupt_queued_ability(target)
-				printBattleMsg(target.name + " was stunned by " + curr_turn.name + " for " + effect.turns as String + " turns")
+				print_battle_msg(target.name + " was stunned by " + curr_turn.name + " for " + effect.turns as String + " turns")
 
 			StatusEffect.DISARM:
-				printBattleMsg(target.name + " was disarmed by " + curr_turn.name + " for " + effect.turns as String + " turns")
+				print_battle_msg(target.name + " was disarmed by " + curr_turn.name + " for " + effect.turns as String + " turns")
 
 
 func execute_shield(move):
 	target.gain_shield(move.val)
-	printBattleMsg(curr_turn.name + " shielded " + target.name + " for " + move.val as String + "HP")
+	print_battle_msg(curr_turn.name + " shielded " + target.name + " for " + move.val as String + "HP")
 
 
 func execute_heal(move):
 	target.heal(move.val)
-	printBattleMsg(curr_turn.name + " healed " + target.name + " for " + move.val as String + "HP")
+	print_battle_msg(curr_turn.name + " healed " + target.name + " for " + move.val as String + "HP")
 
 
 func execute_aoe_heal(move):
@@ -391,17 +440,29 @@ func execute_move_pos(targ, num):
 	for _i in range(abs(num)):
 		swap_pos(targ, num > 0)
 
-	printBattleMsg(targ.name + " moved " + num as String + " spaces")
+	print_battle_msg(targ.name + " moved " + num as String + " spaces")
 	correct_positioning()
 
 
 func ability_success(move):
+	is_crit = false
+
 	if !func_check("pre_check", move):
 		return false
 
 	# Roll for accuracy
 	if rng.randf() > curr_turn.acc:
-		printBattleMsg(curr_turn.name + " missed")
+		print_battle_msg(curr_turn.name + " missed")
+		target.show_value("MISS")
+		return false
+
+	# An ability succeeds even if target dodges
+	success = true
+
+	# If target dodges attack
+	if rng.randf() <= target.dodge:
+		print_battle_msg(target.name + " dodged")
+		target.show_value("DDOGE")
 		return false
 
 	return true
@@ -489,7 +550,7 @@ func kill_hero(hero):
 		enemy_team.erase(hero)
 
 	hero.queue_free()
-	printBattleMsg(hero.name + " died")
+	print_battle_msg(hero.name + " died")
 
 	
 func correct_positioning():
@@ -556,5 +617,5 @@ func _on_Character_selected(node):
 		validate_move()
 
 
-func printBattleMsg(msg):
+func print_battle_msg(msg):
 	print("[r" + (r_num + 1) as String + "t" + (t_num + 1) as String + "] " + msg)

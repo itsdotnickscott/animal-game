@@ -1,11 +1,10 @@
 extends Character
 
 
-# Passive: Instead of having cooldowns on MagicTurt's abilities, Flame is used to cast spells.
-# If MagicTurt's Flame runs out, he is stunned for 1 turn.
-# Whenever MagicTurt is stunned, he retracts into his shell, gaining 10 DEF.
+# Passive: Instead of gaining a pip every round, MagicTurt starts with 5 pips.
+# If MagicTurt's pips run out, he is stunned for 1 turn.
+# Whenever MagicTurt is stunned, he retracts into his shell, gaining 25 DEF.
 var shell_mode
-var flame
 
 
 func load_stats():
@@ -23,9 +22,10 @@ func load_stats():
 	spd     = 0
 
 	shell_mode = false
-	flame = 5
 
 	.load_stats()
+
+	pips = 5
 
 
 func attack():
@@ -35,7 +35,7 @@ func attack():
 	var val = atk * 1.0
 
 	if shell_mode:
-		flame = 5
+		pips = 5
 		shell(false)
 		val += mag * 0.8
 
@@ -49,9 +49,8 @@ func attack():
 
 
 func primary():
-	# Shoot a fireball at a target for 120% MAG. Flame Cost: 2
-	flame -= 2
-	check_flame()
+	# Shoot a fireball at a target for 120% MAG.
+	check_pips()
 
 	return {
 		"type": MoveType.DAMAGE,
@@ -63,9 +62,8 @@ func primary():
 
 
 func secondary():
-	# Create a fiery shield equal to 100% MAG for 2 turns. Flame Cost: 1
-	flame -= 1
-	check_flame()
+	# Create a fiery shield equal to 100% MAG for 2 turns.
+	check_pips()
 
 	return {
 		"type": MoveType.SHIELD,
@@ -76,9 +74,8 @@ func secondary():
 
 	
 func ultimate():
-	# Engulf the front line with a flame dealing 125% MAG. Flame Cost: 3
-	flame -= 3
-	check_flame()
+	# Engulf the front line with a flame dealing 125% MAG.
+	check_pips()
 
 	return {
 		"type": MoveType.AOE,
@@ -94,12 +91,12 @@ func shell(enter):
 		return
 	
 	shell_mode = enter
-	p_def += 0.1 if enter else -0.1
+	p_def += 0.25 if enter else -0.25
 	print("[note] MagicTurt " + ("entered" if enter else "exited") + " his shell")
 
 
-func check_flame():
-	if flame <= 0:
+func check_pips():
+	if pips == 0:
 		apply_status(apply_stun())
 
 
@@ -108,7 +105,7 @@ func apply_stun():
 	return {
 		"status": StatusEffect.STUN,
 		"turns": 1,
-	}
+}.duplicate()
 
 
 func apply_status(effect):
@@ -116,3 +113,8 @@ func apply_status(effect):
 		shell(true)
 	
 	.apply_status(effect)
+
+
+func give_pip():
+	update_ui()
+	pass

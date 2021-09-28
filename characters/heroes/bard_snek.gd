@@ -68,7 +68,7 @@ func apply_stun():
 	return {
 		"status": StatusEffect.STUN,
 		"turns": 1,
-	}
+	}.duplicate()
 
 
 func apply_disarm():
