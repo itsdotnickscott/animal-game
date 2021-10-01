@@ -1,21 +1,21 @@
 extends Character
 
 
-func load_stats():
+func load_stats(lvl):
 	name = "CowDog"
 	
 	$Sprite.texture = preload("res://assets/cow_dog.png")
-	max_hp  = 16
-	atk     = 9
-	mag 	= 4
-	crit    = 0.05
-	acc     = 0.85
-	p_def   = 0
-	m_def	= 0
-	dodge   = 0
-	spd     = 5
+	max_hp  = 11	+ (lvl * 3)
+	atk     = 5		+ (lvl * 2)
+	mag 	= 0		+ (lvl * 1)
+	crit    = 0.05	+ (lvl * 0.01)
+	acc     = 0.85	+ (lvl * 0.005)
+	p_def   = 0		+ (lvl * 0.01)
+	m_def	= 0		+ (lvl * 0.01)
+	dodge   = 0		+ (lvl * 0.01)
+	spd     = 3		+ (lvl * 1)
 
-	.load_stats()
+	.load_stats(lvl)
 
 
 func attack():

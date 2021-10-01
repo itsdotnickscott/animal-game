@@ -2,11 +2,14 @@ extends Node
 
 
 var ally_team
+var ally_lvls
 var enemy_team
 
 
-func change_scene(next_scene, team=null):
+func change_scene(next_scene, team, lvls):
 	ally_team = team
+	ally_lvls = lvls
+	
 	generate_enemy_comp()
 	var _unused = get_tree().change_scene(next_scene)
 
@@ -34,6 +37,10 @@ func get_ally_team(idx=null):
 		return ally_team
 
 	return ally_team[idx]
+
+
+func get_ally_lvl(idx):
+	return ally_lvls[idx]
 
 
 func get_enemy_team(idx=null):

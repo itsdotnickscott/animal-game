@@ -1,19 +1,19 @@
 extends Character
 
 
-func load_stats():
+func load_stats(lvl):
 	$Sprite.texture = preload("res://assets/enemy_fighter.png")
-	max_hp  = 35
-	atk     = 6
+	max_hp  = 10
+	atk     = 3
 	mag		= 0
-	crit    = 0.06
+	crit    = 0.05
 	acc     = 0.9
 	p_def   = 0
 	m_def	= 0
 	dodge   = 0.05
 	spd     = 4
 
-	.load_stats()
+	.load_stats(lvl)
 
 
 func choose_ability():

@@ -21,7 +21,7 @@ export var duration = 1
 
 
 # Character stats
-var lvl
+var level
 var xp
 
 var max_hp  # hit points
@@ -41,19 +41,17 @@ var pips	# energy used to cast abilities
 var pip_cd	# after using a pip-spending ability, one won't generate next round
 
 
-func init(name, enemy=false):
-	var dir = "heroes"
-	if enemy:
-		dir = "enemies"
-		for sprite in [$Pip1, $Pip2, $Pip3, $Pip4, $Pip5]:
-			sprite.visible = false
+func init(name, lvl, enemy=false):
+	# Hide character's pips if an enemy
+	var dir = "enemies" if enemy else "heroes"
 
 	set_script(load("res://characters/" + dir + "/" + name + ".gd"))
-	load_stats()
+	load_stats(lvl)
 	update_ui()
 
 
-func load_stats():
+func load_stats(lvl):
+	level = lvl
 	curr_hp = max_hp
 	status = []
 	shield = 0
@@ -162,9 +160,10 @@ func clear_status(effect):
 		crit -= effect.crit
 
 
-func check_lvl_up():
-	if xp >= round((4 * (lvl ^ 3)) / 5):
-		lvl += 1
+func check_lvl():
+	level = 1
+	while(xp >= round((4 * (level ^ 3)) / 5)):
+		level += 1
 
 
 func apply_lvl_stats():

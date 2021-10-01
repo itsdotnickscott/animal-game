@@ -1,34 +1,29 @@
 extends Character
 
 
-var on_fire
-
-
-func load_stats():
+func load_stats(lvl):
 	name = "FireCat"
 	
 	$Sprite.texture = preload("res://assets/fire_cat.png")
-	max_hp  = 20
-	atk     = 8
-	mag 	= 8
-	crit    = 0.05
-	acc     = 0.95
-	p_def   = 0
-	m_def	= 0
-	dodge   = 0
-	spd     = 6
+	max_hp  = 10	+ (lvl * 2)
+	atk     = 4		+ (lvl * 2)
+	mag 	= 4		+ (lvl * 2)
+	crit    = 0.05	+ (lvl * 0.01)
+	acc     = 0.95	+ (lvl * 0.001)
+	p_def   = 0		+ (lvl * 0.01)
+	m_def	= 0 	+ (lvl * 0.01)
+	dodge   = 0 	+ (lvl * 0.01)
+	spd     = 3 	+ (lvl * 1)
 
-	on_fire = false
-
-	.load_stats()
+	.load_stats(lvl)
 
 
 func attack():
-	# Shoot an arrow at one target for 110% ATK.
+	# Shoot an arrow at one target for 100% ATK.
 	return {
 		"type": MoveType.DAMAGE,
 		"dmg_type": DamageType.PHY,
-		"val": atk * 1.1,
+		"val": atk * 1.0,
 		"targ": Positioning.ENEMY_ALL,
 		"pos": Positioning.ALLY_BACK,
 		"apply": apply_burn(),
@@ -36,8 +31,21 @@ func attack():
 
 
 func primary():
-	# Shoot a piercing arrow, dealing 75% ATK to the first enemy and losing 25% DMG
-	# for every other enemy.
+	# Shoot an arrow at one target for 100% ATK, dealing an additional 75% ATK if they have a BURN
+	# debuff.
+	return {
+		"type": MoveType.DAMAGE,
+		"dmg_type": DamageType.PHY,
+		"val": atk * 1.0,
+		"boost": ["check_for_burn", atk * 0.75],
+		"targ": Positioning.ENEMY_ALL,
+		"pos": Positioning.ALLY_BACK,
+		"apply": apply_burn(),
+	}
+
+
+func secondary():
+	# Shoot a piercing arrow, dealing 75% ATK and losing 25% DMG every time it hits an enemy.
 	return {
 		"type": MoveType.AOE,
 		"dmg_type": DamageType.PHY,
@@ -46,17 +54,6 @@ func primary():
 		"pos": Positioning.ALLY_BACK,
 		"dmg_chg": 0.75,
 		"apply": apply_burn(),
-	}
-
-
-func secondary():
-	# Raise DODGE by 5 and set abilities on fire for 2 turns.
-	# While on fire, abilities apply a BURN.
-	return {
-		"type": MoveType.STATUS,
-		"targ": Positioning.SELF,
-		"pos": Positioning.ALLY_ALL,
-		"apply": apply_on_fire(),
 	}
 
 	
@@ -73,19 +70,8 @@ func ultimate():
 	}
 
 
-func apply_on_fire():
-	return {
-		"dodge": 0.05,
-		"on_fire": true,
-		"turns": 2,
-	}
-
-
 func apply_burn():
-	if !on_fire:
-		return null
-
-	# Deals 75% MAG over 3 turns.
+	# Passive: All of FireCat's damaging abilities applies a burn that deals 75% MAG over 3 turns.
 	return ({
 		"status": StatusEffect.BURN,
 		"val": mag * 0.25,
@@ -99,19 +85,3 @@ func check_for_burn(hero):
 			return true
 
 	return false
-
-
-func apply_status(effect):
-	if "on_fire" in effect:
-		on_fire = effect.on_fire
-		print("[note] CatArcher is on fire!")
-
-	.apply_status(effect)
-
-
-func clear_status(effect):
-	if effect.on_fire:
-		on_fire = !effect.on_fire
-		print("[note] CatArcher is no longer on fire")
-
-	.clear_status(effect)

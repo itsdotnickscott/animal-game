@@ -58,6 +58,7 @@ _global_script_class_icons={
 
 config/name="animal-game"
 run/main_scene="res://Home.tscn"
+boot_splash/bg_color=Color( 0.12549, 0.145098, 0.192157, 1 )
 config/icon="res://assets/icon.png"
 
 [autoload]
@@ -69,6 +70,7 @@ TeamComp="*res://team_comp.gd"
 window/size/width=320
 window/size/height=180
 window/size/resizable=false
+window/size/always_on_top=true
 window/size/test_width=1920
 window/size/test_height=1080
 window/stretch/mode="2d"

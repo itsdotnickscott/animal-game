@@ -12,6 +12,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 team_comp = [ "magic_turt", "pow_bun", "cow_dog", "fire_cat" ]
+lvls = [ 0, 0, 0, 0 ]
 
 [node name="StartBattle" type="Button" parent="."]
 margin_left = 251.0
@@ -25,72 +26,128 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="OptionButton1" type="OptionButton" parent="." groups=[
-"option",
+[node name="Hero1" type="Sprite" parent="." groups=[
+"hero",
 ]]
-margin_left = 241.0
-margin_top = 73.0
-margin_right = 316.0
-margin_bottom = 93.0
+position = Vector2( 279, 38 )
+texture = ExtResource( 1 )
+
+[node name="OptionButton" type="OptionButton" parent="Hero1"]
+margin_left = -38.0
+margin_top = 35.0
+margin_right = 37.0
+margin_bottom = 55.0
 custom_fonts/font = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Sprite" type="Sprite" parent="OptionButton1"]
-position = Vector2( 38, -35 )
+[node name="SpinBox" type="SpinBox" parent="Hero1"]
+margin_left = -37.0
+margin_top = 68.0
+margin_right = 37.0
+margin_bottom = 92.0
+min_value = 1.0
+value = 1.0
+align = 1
+prefix = "Lvl"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Hero2" type="Sprite" parent="." groups=[
+"hero",
+]]
+position = Vector2( 200, 38 )
 texture = ExtResource( 1 )
 
-[node name="OptionButton2" type="OptionButton" parent="." groups=[
-"option",
-]]
-margin_left = 162.0
-margin_top = 73.0
-margin_right = 237.0
-margin_bottom = 93.0
+[node name="OptionButton" type="OptionButton" parent="Hero2"]
+margin_left = -38.0
+margin_top = 35.0
+margin_right = 37.0
+margin_bottom = 55.0
 custom_fonts/font = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Sprite" type="Sprite" parent="OptionButton2"]
-position = Vector2( 38, -35 )
+[node name="SpinBox" type="SpinBox" parent="Hero2"]
+margin_left = -37.0
+margin_top = 68.0
+margin_right = 37.0
+margin_bottom = 92.0
+min_value = 1.0
+value = 1.0
+align = 1
+prefix = "Lvl"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Hero3" type="Sprite" parent="." groups=[
+"hero",
+]]
+position = Vector2( 121, 38 )
 texture = ExtResource( 1 )
 
-[node name="OptionButton3" type="OptionButton" parent="." groups=[
-"option",
-]]
-margin_left = 83.0
-margin_top = 73.0
-margin_right = 158.0
-margin_bottom = 93.0
+[node name="OptionButton" type="OptionButton" parent="Hero3"]
+margin_left = -38.0
+margin_top = 35.0
+margin_right = 37.0
+margin_bottom = 55.0
 custom_fonts/font = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Sprite" type="Sprite" parent="OptionButton3"]
-position = Vector2( 38, -35 )
+[node name="SpinBox" type="SpinBox" parent="Hero3"]
+margin_left = -38.0
+margin_top = 68.0
+margin_right = 36.0
+margin_bottom = 92.0
+min_value = 1.0
+value = 1.0
+align = 1
+prefix = "Lvl"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Hero4" type="Sprite" parent="." groups=[
+"hero",
+]]
+position = Vector2( 42, 38 )
 texture = ExtResource( 1 )
 
-[node name="OptionButton4" type="OptionButton" parent="." groups=[
-"option",
-]]
-margin_left = 4.0
-margin_top = 73.0
-margin_right = 79.0
-margin_bottom = 93.0
+[node name="OptionButton" type="OptionButton" parent="Hero4"]
+margin_left = -38.0
+margin_top = 35.0
+margin_right = 37.0
+margin_bottom = 55.0
 custom_fonts/font = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Sprite" type="Sprite" parent="OptionButton4"]
-position = Vector2( 38, -35 )
-texture = ExtResource( 1 )
+[node name="SpinBox" type="SpinBox" parent="Hero4"]
+margin_left = -38.0
+margin_top = 68.0
+margin_right = 36.0
+margin_bottom = 92.0
+min_value = 1.0
+value = 1.0
+align = 1
+prefix = "Lvl"
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [connection signal="pressed" from="StartBattle" to="." method="_on_StartBattle_pressed"]
-[connection signal="item_selected" from="OptionButton1" to="." method="_on_OptionButton_item_selected" binds= [ 0 ]]
-[connection signal="item_selected" from="OptionButton2" to="." method="_on_OptionButton_item_selected" binds= [ 1 ]]
-[connection signal="item_selected" from="OptionButton3" to="." method="_on_OptionButton_item_selected" binds= [ 2 ]]
-[connection signal="item_selected" from="OptionButton4" to="." method="_on_OptionButton_item_selected" binds= [ 3 ]]
+[connection signal="item_selected" from="Hero1/OptionButton" to="." method="_on_OptionButton_item_selected" binds= [ 0 ]]
+[connection signal="value_changed" from="Hero1/SpinBox" to="." method="_on_SpinBox_value_changed" binds= [ 0 ]]
+[connection signal="item_selected" from="Hero2/OptionButton" to="." method="_on_OptionButton_item_selected" binds= [ 1 ]]
+[connection signal="value_changed" from="Hero2/SpinBox" to="." method="_on_SpinBox_value_changed" binds= [ 1 ]]
+[connection signal="item_selected" from="Hero3/OptionButton" to="." method="_on_OptionButton_item_selected" binds= [ 2 ]]
+[connection signal="value_changed" from="Hero3/SpinBox" to="." method="_on_SpinBox_value_changed" binds= [ 2 ]]
+[connection signal="item_selected" from="Hero4/OptionButton" to="." method="_on_OptionButton_item_selected" binds= [ 3 ]]
+[connection signal="value_changed" from="Hero4/SpinBox" to="." method="_on_SpinBox_value_changed" binds= [ 3 ]]

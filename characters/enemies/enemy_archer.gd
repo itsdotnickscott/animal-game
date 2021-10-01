@@ -1,10 +1,10 @@
 extends Character
 
 
-func load_stats():
+func load_stats(lvl):
 	$Sprite.texture = preload("res://assets/enemy_archer.png")
-	max_hp  = 16
-	atk     = 6
+	max_hp  = 8
+	atk     = 3
 	mag		= 0
 	crit    = 0.05
 	acc     = 0.9
@@ -13,15 +13,15 @@ func load_stats():
 	dodge   = 0
 	spd     = 5
 
-	.load_stats()
+	.load_stats(lvl)
 
 
 func choose_ability():
-	# Attack all targets for 80% ATK
+	# Attack one target for 100% ATK
 	return {
-		"type": MoveType.AOE,
+		"type": MoveType.DAMAGE,
 		"dmg_type": DamageType.PHY,
-		"val": atk * 0.8,
+		"val": atk * 1,
 		"targ": Positioning.ALLY_ALL,
 		"pos": Positioning.ENEMY_BACK,
 	}

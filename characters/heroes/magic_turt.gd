@@ -7,23 +7,23 @@ extends Character
 var shell_mode
 
 
-func load_stats():
+func load_stats(lvl):
 	name = "MagicTurt"
 
 	$Sprite.texture = preload("res://assets/magic_turt.png")
-	max_hp  = 30
-	atk     = 6
-	mag 	= 10
-	crit    = 0.05
-	acc     = 0.9
-	p_def   = 0.1
-	m_def	= 0.1
-	dodge   = 0
-	spd     = 0
+	max_hp  = 16	+ (lvl * 4)
+	atk     = 2		+ (lvl * 1)
+	mag 	= 4 	+ (lvl * 2)
+	crit    = 0.05	+ (lvl * 0.01)
+	acc     = 0.9	+ (lvl * 0.005)
+	p_def   = 0.1	+ (lvl * 0.01)
+	m_def	= 0.1	+ (lvl * 0.01)
+	dodge   = 0		+ (lvl * 0.01)
+	spd     = 0		+ (lvl * 1)
 
 	shell_mode = false
 
-	.load_stats()
+	.load_stats(lvl)
 
 	pips = 5
 
@@ -50,8 +50,6 @@ func attack():
 
 func primary():
 	# Shoot a fireball at a target for 120% MAG.
-	check_pips()
-
 	return {
 		"type": MoveType.DAMAGE,
 		"dmg_type": DamageType.MAG,
@@ -63,8 +61,6 @@ func primary():
 
 func secondary():
 	# Create a fiery shield equal to 100% MAG for 2 turns.
-	check_pips()
-
 	return {
 		"type": MoveType.SHIELD,
 		"val": mag * 1.0,
@@ -75,8 +71,6 @@ func secondary():
 	
 func ultimate():
 	# Engulf the front line with a flame dealing 125% MAG.
-	check_pips()
-
 	return {
 		"type": MoveType.AOE,
 		"dmg_type": DamageType.MAG,
@@ -95,11 +89,6 @@ func shell(enter):
 	print("[note] MagicTurt " + ("entered" if enter else "exited") + " his shell")
 
 
-func check_pips():
-	if pips == 0:
-		apply_status(apply_stun())
-
-
 func apply_stun():
 	# Stuns the target for 1 turn.
 	return {
@@ -116,5 +105,11 @@ func apply_status(effect):
 
 
 func give_pip():
-	update_ui()
 	pass
+
+
+func use_pips(num):
+	.use_pips(num)
+
+	if pips == 0:
+		apply_status(apply_stun())

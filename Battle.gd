@@ -13,6 +13,7 @@ var Character = preload("res://characters/Character.tscn")
 const ONE_PIP = 1
 const ULT_PIP = 3
 
+
 # Battle game state
 var positioning
 var ally_team
@@ -24,17 +25,17 @@ var game_state
 var target
 var ability
 
+var r_num	# round number
+var t_num	# turn number
+var w_num	# wave number
 
-# Current character's state
+
+# Current hero's state
 var disarm		# if current player is disarmed
 var queue		# if heroes have queued abilities
 var is_crit 	# if current move crit
 var pip_cost	# pip cost of ability being used
 var success		# if ability hits (except dodge)
-
-var r_num	# round number
-var t_num	# turn number
-var w_num	# wave number
 
 
 func _ready():
@@ -44,13 +45,13 @@ func _ready():
 	# Initialize characters with team comps
 	var i = 0
 	for hero in ally_team:
-		hero.init(TeamComp.get_ally_team(i))
+		hero.init(TeamComp.get_ally_team(i), TeamComp.get_ally_lvl(i))
 		i += 1
 
 	i = 0
 	for hero in enemy_team:
 		if TeamComp.get_enemy_team().size() > i:
-			hero.init(TeamComp.get_enemy_team(i), true)
+			hero.init(TeamComp.get_enemy_team(i), 0, true)
 
 		else:
 			enemy_team.erase(hero)
@@ -364,6 +365,12 @@ func execute_damage(move, k_queue=false):
 
 func calculate_damage(move):
 	var dmg = move.val
+
+	# If an attack gets a boost
+	if "boost" in move:
+		if curr_turn.call(move.boost[0], target):
+			dmg += move.boost[1]
+
 	# Damage value is variable, dealing 85-100% orig dmg value
 	dmg *= rng.randf_range(0.85, 1)
 
@@ -416,11 +423,13 @@ func execute_status(effect):
 
 
 func execute_shield(move):
+	success = true
 	target.gain_shield(move.val)
 	print_battle_msg(curr_turn.name + " shielded " + target.name + " for " + move.val as String + "HP")
 
 
 func execute_heal(move):
+	success = true
 	target.heal(move.val)
 	print_battle_msg(curr_turn.name + " healed " + target.name + " for " + move.val as String + "HP")
 
@@ -586,7 +595,7 @@ func check_for_next_wave():
 			character.position = Vector2(POS_COORDS[4 + i], 97)
 			add_child(character)
 
-			character.init(team_comp[i], true)
+			character.init(team_comp[i], 0, true)
 			character.add_to_group("enemy")
 			enemy_team.append(character)
 
